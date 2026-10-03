@@ -29,7 +29,7 @@ export function SlashDivider({
 
   if (orientation === "vertical") {
     return (
-      <div className={`flex justify-center items-center ${className}`}>
+      <div className={`hidden md:flex justify-center items-center ${className}`}>
         <motion.svg
           width="24"
           height="120"
@@ -54,7 +54,7 @@ export function SlashDivider({
   }
 
   return (
-    <div className={`flex justify-center items-center py-12 md:py-16 ${className}`}>
+    <div className={`hidden md:flex justify-center items-center py-12 md:py-16 ${className}`}>
       <motion.svg
         width="120"
         height="24"
