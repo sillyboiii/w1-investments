@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { usePathname } from "next/navigation";
+import { LogoImage } from "@/components/ui/LogoImage";
 
 const navLinks = [
   { href: "/fund", label: "Fund" },
@@ -47,16 +48,10 @@ export function Navbar() {
             : "bg-transparent"
         }`}
       >
-        <nav className="mx-auto max-w-7xl px-6 md:px-8 lg:px-10 py-4 md:py-5 flex items-center justify-between">
-          <Link href="/" className="group focus:outline-none focus-visible:ring-2 ring-border rounded-sm">
-            <h1 className="text-lg md:text-xl tracking-tight font-sans uppercase leading-tight">
-              <span className="font-semibold tracking-[-0.01em]">W1</span>
-              <span className="mx-1.5 text-muted">|</span>
-              <span className="font-medium tracking-wider">INVESTMENTS</span>
-            </h1>
-          </Link>
+        <nav className="mx-auto max-w-7xl px-6 md:px-8 lg:px-10 py-3 md:py-4 flex items-center justify-between">
+          <LogoImage href="/" size="md" className="group" />
 
-          <div className="hidden lg:flex items-center gap-10">
+          <div className="hidden lg:flex items-center gap-8 xl:gap-10">
             {navLinks.map((link) => {
               const isActive = pathname === link.href || pathname.startsWith(`${link.href}/`);
               return (
@@ -78,7 +73,7 @@ export function Navbar() {
             })}
             <Link
               href="/join"
-              className="group inline-flex items-center gap-1.5 text-sm font-medium tracking-tight border-b border-border pb-1 transition-colors hover:border-ink hover:text-ink"
+              className="group inline-flex items-center gap-1.5 text-sm font-medium tracking-tight border-b border-border pb-1 transition-colors hover:border-ink hover:text-ink ml-2"
             >
               Join W1
               <svg

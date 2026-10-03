@@ -6,6 +6,7 @@ import { SlashDivider } from "@/components/ui/SlashDivider";
 import { Button } from "@/components/ui/Button";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
+import { W1Mark } from "@/components/ui/W1Mark";
 
 export default function Home() {
   const containerVariants: Variants = {
@@ -41,12 +42,10 @@ export default function Home() {
               variants={containerVariants}
               initial="hidden"
               animate="visible"
-              className="flex flex-col items-center text-center"
+              className="flex flex-col items-start md:items-center md:text-center"
             >
-              <motion.div variants={itemVariants} className="mb-8 md:mb-10">
-                <h1 className="text-5xl md:text-7xl lg:text-8xl xl:text-9xl tracking-[-0.03em] leading-[0.95] uppercase font-sans">
-                  <span className="font-semibold">W1</span>
-                </h1>
+              <motion.div variants={itemVariants} className="mb-8 md:mb-10 flex justify-center w-full">
+                <W1Mark size="2xl" />
               </motion.div>
 
               <motion.div variants={itemVariants} className="mb-6 md:mb-8">
@@ -67,7 +66,7 @@ export default function Home() {
 
               <motion.div
                 variants={itemVariants}
-                className="flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-6"
+                className="flex flex-col sm:flex-row items-start md:items-center md:justify-center gap-4 sm:gap-6"
               >
                 <Button href="/about" variant="primary">
                   Explore W1
@@ -77,7 +76,7 @@ export default function Home() {
                 </Button>
               </motion.div>
 
-              <motion.div variants={itemVariants} className="mt-12 md:mt-16">
+              <motion.div variants={itemVariants} className="mt-12 md:mt-16 w-full">
                 <SlashDivider delay={0.8} />
               </motion.div>
             </motion.div>

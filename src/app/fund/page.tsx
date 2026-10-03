@@ -1,6 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
+import Image from "next/image";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { SlashDivider } from "@/components/ui/SlashDivider";
@@ -13,24 +14,6 @@ const researchFramework = [
   { title: "Investment Committee", question: "Given all of the evidence, what do we do?" },
 ];
 
-const processSteps = [
-  { step: 1, title: "Idea Generation" },
-  { step: 2, title: "Preliminary Research" },
-  { step: 3, title: "Deep-Dive Research" },
-  { step: 4, title: "Financial Model" },
-  { step: 5, title: "Valuation" },
-  { step: 6, title: "Investment Thesis" },
-  { step: 7, title: "Macro Review" },
-  { step: 8, title: "Quant Review" },
-  { step: 9, title: "Investment Memorandum" },
-  { step: 10, title: "Investment Committee" },
-  { step: 11, title: "Position Sizing" },
-  { step: 12, title: "Portfolio" },
-  { step: 13, title: "Continuous Monitoring" },
-  { step: 14, title: "Add / Hold / Trim / Exit" },
-  { step: 15, title: "Post-Investment Review" },
-];
-
 export default function FundPage() {
   return (
     <div className="flex min-h-full flex-col">
@@ -41,9 +24,9 @@ export default function FundPage() {
             <motion.div
               initial={{ opacity: 0, y: 40 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 1, ease: [0.25, 0.1, 0.25, 1] }}
+              transition={{ duration: 1, ease: "easeOut" }}
             >
-              <h1 className="text-3xl md:text-5xl lg:text-6xl font-serif tracking-tight leading-[1.05] max-w-4xl">
+              <h1 className="text-3xl md:text-5xl lg:text-6xl font-serif tracking-tight leading-[1.05]">
                 THE FUND
               </h1>
               <p className="text-xl md:text-2xl font-serif tracking-tight text-muted mt-4 max-w-3xl">
@@ -79,7 +62,7 @@ export default function FundPage() {
                   transition={{
                     duration: 1,
                     delay: index * 0.05,
-                    ease: [0.25, 0.1, 0.25, 1],
+                    ease: "easeOut",
                   }}
                   className="border border-border p-6 md:p-8 flex flex-col h-full"
                 >
@@ -99,31 +82,24 @@ export default function FundPage() {
               Investment Process
             </h2>
             <p className="text-base md:text-lg text-muted max-w-3xl mb-10">
-              The investment process is iterative, with feedback loops between research, risk and committee decisions — not strictly linear.
+              The investment process is iterative, with feedback loops between research, risk and committee decisions — designed to maintain discipline without unnecessary complexity.
             </p>
-            <div className="space-y-4">
-              {processSteps.map((step, index) => (
-                <motion.div
-                  key={step.step}
-                  initial={{ opacity: 0, x: -20 }}
-                  whileInView={{ opacity: 1, x: 0 }}
-                  viewport={{ once: true, margin: "-50px" }}
-                  transition={{
-                    duration: 0.8,
-                    delay: index * 0.02,
-                    ease: [0.25, 0.1, 0.25, 1],
-                  }}
-                  className="flex items-center gap-6 border border-border p-4 md:p-5"
-                >
-                  <span className="text-xs font-sans font-medium tracking-widest uppercase text-muted w-8 shrink-0">
-                    {step.step}
-                  </span>
-                  <span className="text-base md:text-lg font-serif tracking-tight">
-                    {step.title}
-                  </span>
-                </motion.div>
-              ))}
-            </div>
+            <motion.div
+              initial={{ opacity: 0, y: 40 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, margin: "-100px" }}
+              transition={{ duration: 1, ease: "easeOut" }}
+              className="flex justify-center w-full overflow-x-auto"
+            >
+              <Image
+                src="/process-diagram.png"
+                alt="W1 Investment Process Diagram"
+                width={1400}
+                height={900}
+                className="w-full h-auto max-w-6xl"
+                priority
+              />
+            </motion.div>
           </div>
         </section>
       </main>
