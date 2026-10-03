@@ -9,15 +9,19 @@ import { Button } from "@/components/ui/Button";
 const leadership = [
   {
     label: "Founder / President",
+    name: "Adam",
     role: "Founder & President",
+    status: "filled",
   },
   {
     label: "Vice President",
     role: "Vice President",
+    status: "open",
   },
   {
     label: "CIO / Head of Investments",
     role: "CIO / Head of Investments",
+    status: "open",
   },
 ];
 
@@ -71,17 +75,27 @@ function OpenPosition({ title, compact = false }: { title: string; compact?: boo
 }
 
 function LeadershipNode({ item }: { item: (typeof leadership)[number] }) {
+  const isOpen = item.status === "open";
+
   return (
     <div className="mx-auto w-full max-w-sm border-y border-border bg-background py-5 text-center">
       <p className="text-xs uppercase tracking-[0.22em] text-muted">{item.label}</p>
-      <h3 className="mt-3 text-2xl font-serif tracking-tight text-ink">Open position</h3>
+      <h3 className="mt-3 text-2xl font-serif tracking-tight text-ink">{isOpen ? "Open position" : item.name}</h3>
       <p className="mt-2 text-sm text-muted">{item.role}</p>
-      <p className="mx-auto mt-3 max-w-xs text-xs leading-relaxed text-muted">
-        Profile, LinkedIn, course, research interests and selected W1 work will be added once appointed.
-      </p>
-      <Link href="/join" className="mt-3 inline-block border-b border-border pb-1 text-xs text-muted hover:border-ink hover:text-ink">
-        Recruit for this role
-      </Link>
+      {isOpen ? (
+        <>
+          <p className="mx-auto mt-3 max-w-xs text-xs leading-relaxed text-muted">
+            Profile, LinkedIn, course, research interests and selected W1 work will be added once appointed.
+          </p>
+          <Link href="/join" className="mt-3 inline-block border-b border-border pb-1 text-xs text-muted hover:border-ink hover:text-ink">
+            Recruit for this role
+          </Link>
+        </>
+      ) : (
+        <p className="mx-auto mt-3 max-w-xs text-xs leading-relaxed text-muted">
+          Profile details, LinkedIn and selected W1 research will be added once available.
+        </p>
+      )}
     </div>
   );
 }
@@ -135,7 +149,7 @@ export default function TeamPage() {
                     <OpenPosition title={group.lead} compact />
                     <div className="mt-5 space-y-2 text-sm text-muted">
                       {group.roles.map((role) => (
-                        <div key={role} className="border-t border-border pt-2">{role}</div>
+                        <OpenPosition key={role} title={role} compact />
                       ))}
                     </div>
                   </div>
@@ -145,7 +159,7 @@ export default function TeamPage() {
                   <OpenPosition title={platformRoles[0]} compact />
                   <div className="mt-5 space-y-2 text-sm text-muted">
                     {platformRoles.slice(1).map((role) => (
-                      <div key={role} className="border-t border-border pt-2">{role}</div>
+                      <OpenPosition key={role} title={role} compact />
                     ))}
                   </div>
                 </div>
@@ -168,7 +182,7 @@ export default function TeamPage() {
                       <h3 className="font-serif text-xl tracking-tight leading-tight">{group.name}</h3>
                       <OpenPosition title={group.lead} />
                       <div className="mt-4 space-y-2 text-sm text-muted leading-relaxed">
-                        {group.roles.map((role) => <div key={role} className="border-t border-border pt-2">{role}</div>)}
+                        {group.roles.map((role) => <OpenPosition key={role} title={role} compact />)}
                       </div>
                     </div>
                   ))}
@@ -179,7 +193,7 @@ export default function TeamPage() {
                 <summary className="cursor-pointer list-none text-sm uppercase tracking-[0.18em] text-muted">Platform / Operations</summary>
                 <div className="mt-4 space-y-2 text-sm text-muted leading-relaxed">
                   {platformRoles.map((role, index) => (
-                    index === 0 ? <OpenPosition key={role} title={role} /> : <div key={role}>{role}</div>
+                    <OpenPosition key={role} title={role} compact={index !== 0} />
                   ))}
                 </div>
               </details>
@@ -219,12 +233,24 @@ export default function TeamPage() {
                 Member profiles.
               </h2>
               <p className="max-w-md text-sm text-muted">
-                Profiles will appear here once roles are appointed, including LinkedIn, course, research interests and selected W1 work.
+                Founder profile is shown now. Other profiles will appear once roles are appointed, including LinkedIn, course, research interests and selected W1 work.
               </p>
             </div>
 
-            <div className="border-y border-border py-8 text-muted">
-              No confirmed public member profiles yet.
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+              <details className="group border-y border-border py-5">
+                <summary className="cursor-pointer list-none">
+                  <h3 className="text-3xl font-serif tracking-tight">Adam</h3>
+                  <p className="mt-2 text-xs uppercase tracking-[0.2em] text-muted">Founder & President</p>
+                  <p className="mt-2 text-sm text-muted">Leadership</p>
+                </summary>
+                <div className="mt-6 space-y-3 border-t border-border pt-5 text-sm text-muted leading-relaxed">
+                  <p>Founder & President of W1.</p>
+                  <p>University: University of Westminster</p>
+                  <p>Course: Finance BSc</p>
+                  <p>Research interests, LinkedIn and selected W1 research will be added once available.</p>
+                </div>
+              </details>
             </div>
 
             <div className="mt-16 border-t border-border pt-10">
