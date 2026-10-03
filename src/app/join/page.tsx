@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { SlashDivider } from "@/components/ui/SlashDivider";
+import { W1Mark } from "@/components/ui/W1Mark";
 
 const tracks = [
   "Fundamental Research",
@@ -25,8 +26,9 @@ export default function JoinPage() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 1, ease: [0.25, 0.1, 0.25, 1] }}
             >
-              <h1 className="text-3xl md:text-5xl lg:text-6xl font-serif tracking-tight leading-[1.05]">
-                JOIN W1
+              <h1 className="flex flex-wrap items-center gap-4 text-3xl md:text-5xl lg:text-6xl font-serif tracking-tight leading-[1.05]">
+                JOIN
+                <W1Mark size="md" className="h-auto w-24 md:w-32" />
               </h1>
 
               <SlashDivider delay={0.2} />

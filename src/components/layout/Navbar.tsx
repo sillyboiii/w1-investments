@@ -5,7 +5,6 @@ import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { usePathname } from "next/navigation";
 import { LogoImageAlt } from "@/components/ui/LogoImageAlt";
-import { W1Mark } from "@/components/ui/W1Mark";
 
 const navLinks = [
   { href: "/fund", label: "Fund" },
@@ -90,10 +89,7 @@ export function Navbar() {
                   : "border-border hover:border-ink hover:text-ink"
               }`}
             >
-              Join
-              <span className={`inline-flex h-4 w-7 items-center ${useLightNav ? "brightness-0 invert" : ""}`}>
-                <W1Mark size="sm" className="h-auto w-7" />
-              </span>
+              Join W1
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 width="16"
@@ -154,9 +150,9 @@ export function Navbar() {
               <Link
                 href="/join"
                 onClick={() => setIsOpen(false)}
-                className="inline-flex items-center gap-3 text-3xl md:text-4xl font-serif tracking-tight py-2 mt-4"
+                className="inline-flex items-center gap-2 text-3xl md:text-4xl font-serif tracking-tight py-2 mt-4"
               >
-                Join <W1Mark size="sm" className="h-auto w-10" /> →
+                Join W1 →
               </Link>
             </motion.nav>
           </motion.div>
