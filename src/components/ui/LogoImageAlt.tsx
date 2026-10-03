@@ -13,11 +13,11 @@ export function LogoImageAlt({
   href,
 }: LogoImageAltProps) {
   const sizes = {
-    sm: { width: 70, height: 35 },
-    md: { width: 120, height: 60 },
-    lg: { width: 160, height: 80 },
-    xl: { width: 220, height: 110 },
-    "2xl": { width: 320, height: 160 },
+    sm: { width: 120, height: 35 },
+    md: { width: 170, height: 49 },
+    lg: { width: 240, height: 70 },
+    xl: { width: 320, height: 93 },
+    "2xl": { width: 420, height: 122 },
   };
 
   const logo = (
