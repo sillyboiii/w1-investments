@@ -5,29 +5,6 @@ import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { Button } from "@/components/ui/Button";
 
-const collageImages = [
-  {
-    src: "https://images.unsplash.com/photo-1521737604893-d14cc237f11d?q=80&w=900&auto=format&fit=crop",
-    className: "hidden lg:block absolute top-4 left-[30%] h-28 w-52",
-  },
-  {
-    src: "https://images.unsplash.com/photo-1517048676732-d65bc937f952?q=80&w=900&auto=format&fit=crop",
-    className: "hidden lg:block absolute top-36 right-4 h-32 w-56",
-  },
-  {
-    src: "https://images.unsplash.com/photo-1556761175-b413da4baf72?q=80&w=900&auto=format&fit=crop",
-    className: "hidden lg:block absolute bottom-16 left-2 h-36 w-60",
-  },
-  {
-    src: "https://images.unsplash.com/photo-1551836022-d5d88e9218df?q=80&w=900&auto=format&fit=crop",
-    className: "hidden lg:block absolute bottom-2 right-[16%] h-28 w-52",
-  },
-  {
-    src: "https://images.unsplash.com/photo-1519389950473-47ba0277781c?q=80&w=900&auto=format&fit=crop",
-    className: "block lg:hidden mt-10 h-48 w-full",
-  },
-];
-
 const leadership = [
   {
     name: "Adam",
@@ -65,13 +42,13 @@ export default function TeamPage() {
     <div className="flex min-h-full flex-col">
       <Navbar />
       <main className="flex-1">
-        <section className="relative min-h-[82vh] overflow-hidden bg-background pt-28 md:pt-32">
+        <section className="relative min-h-[70vh] overflow-hidden bg-background pt-28 md:pt-32">
           <div className="mx-auto max-w-7xl px-6 md:px-8 lg:px-10">
             <motion.div
               initial={{ opacity: 0, y: 40 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 1, ease: "easeOut" }}
-              className="relative z-10 mx-auto flex min-h-[58vh] max-w-5xl flex-col items-center justify-center text-center"
+              className="relative z-10 mx-auto flex min-h-[48vh] max-w-5xl flex-col items-center justify-center text-center"
             >
               <p className="mb-4 text-xs uppercase tracking-[0.25em] text-muted">Team</p>
               <h1 className="text-4xl md:text-6xl lg:text-7xl font-serif tracking-tight leading-[0.98] text-ink">
@@ -83,21 +60,6 @@ export default function TeamPage() {
                 W1 brings together students who research markets, challenge investment ideas and help build the operating system of a serious student-led fund.
               </p>
             </motion.div>
-
-            {collageImages.map((image) => (
-              <motion.div
-                key={image.src}
-                initial={{ opacity: 0, y: 30 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 1, ease: "easeOut" }}
-                className={`${image.className} overflow-hidden rounded-2xl bg-stone-200`}
-              >
-                <div
-                  className="h-full w-full bg-cover bg-center grayscale-[15%] saturate-[0.85]"
-                  style={{ backgroundImage: `url('${image.src}')` }}
-                />
-              </motion.div>
-            ))}
           </div>
         </section>
 
@@ -113,7 +75,6 @@ export default function TeamPage() {
             <div className="grid grid-cols-1 gap-10 md:grid-cols-2">
               {leadership.map((member) => (
                 <article key={member.name} className="border-t border-border pt-6">
-                  <div className="mb-6 aspect-[4/5] rounded-2xl bg-stone-200" />
                   <h3 className="text-3xl md:text-4xl font-serif tracking-tight leading-none">
                     {member.name}
                   </h3>
