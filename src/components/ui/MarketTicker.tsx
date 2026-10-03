@@ -45,25 +45,37 @@ export function MarketTicker() {
           }}
         >
           {[...quotes, ...quotes].map((quote, index) => {
+            const quoteIndex = index % quotes.length;
             const changePct = quote.changePercent;
             const isPositive = changePct !== null && changePct > 0;
             const isNegative = changePct !== null && changePct < 0;
-            const isFlat = changePct !== null && changePct === 0;
 
             return (
-              <div key={`${quote.symbol}-${index}`} className="flex items-center gap-2 md:gap-3">
-                <span className="text-xs md:text-sm font-sans font-medium tracking-tight text-white">
+              <div
+                key={`${quote.symbol}-${index}`}
+                className={`items-center gap-2 md:gap-3 ${quoteIndex > 9 ? "hidden md:flex" : "flex"}`}
+              >
+                <span className="text-xs md:text-sm font-sans font-medium tracking-tight text-white/95">
                   {quote.name ?? quote.symbol}
                 </span>
+                <span className="text-white/35">·</span>
+                <span className="text-xs font-sans text-white/55 tracking-tight">
+                  {quote.symbol}
+                </span>
                 {quote.price !== null && (
+                  <>
+                    <span className="text-white/35">·</span>
                   <span className="text-xs md:text-sm font-sans text-white/90 tabular-nums">
                     {quote.price.toLocaleString(undefined, {
                       minimumFractionDigits: 2,
                       maximumFractionDigits: 2,
                     })}
                   </span>
+                  </>
                 )}
                 {changePct !== null && (
+                  <>
+                    <span className="text-white/35">·</span>
                   <span
                     className={`text-xs md:text-sm font-sans tabular-nums ${
                       isPositive
@@ -76,6 +88,7 @@ export function MarketTicker() {
                     {isPositive ? "+" : ""}
                     {changePct.toFixed(2)}%
                   </span>
+                  </>
                 )}
               </div>
             );

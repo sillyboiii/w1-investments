@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { MARKET_LABELS, MARKET_SYMBOLS, type TickerItem } from "@/lib/marketData";
+import { MARKET_LABELS, MARKET_SYMBOLS, YAHOO_SYMBOLS, type TickerItem } from "@/lib/marketData";
 
 export const revalidate = 60;
 
@@ -34,6 +34,41 @@ function normalizeQuote(symbol: string, raw: Record<string, unknown>): TickerIte
   };
 }
 
+async function fetchYahooQuotes() {
+  const yahooToSymbol = new Map(
+    MARKET_SYMBOLS.map((symbol) => [YAHOO_SYMBOLS[symbol] ?? symbol, symbol]),
+  );
+  const symbols = Array.from(yahooToSymbol.keys()).join(",");
+  const url = `https://query1.finance.yahoo.com/v7/finance/quote?symbols=${encodeURIComponent(symbols)}`;
+  const response = await fetch(url, {
+    headers: {
+      accept: "application/json",
+      "user-agent": "Mozilla/5.0 W1 Investments market display",
+    },
+    next: { revalidate: 60 },
+  });
+
+  if (!response.ok) throw new Error(`Yahoo Finance returned ${response.status}`);
+
+  const payload = await response.json();
+  const results = payload?.quoteResponse?.result;
+  if (!Array.isArray(results)) return [];
+
+  return results
+    .map((raw: Record<string, unknown>) => {
+      const yahooSymbol = typeof raw.symbol === "string" ? raw.symbol : "";
+      const symbol = yahooToSymbol.get(yahooSymbol);
+      if (!symbol) return null;
+      return normalizeQuote(symbol, raw);
+    })
+    .filter((quote: TickerItem | null): quote is TickerItem => {
+      return Boolean(quote && quote.price !== null && quote.changePercent !== null);
+    })
+    .sort((a: TickerItem, b: TickerItem) => {
+      return MARKET_SYMBOLS.indexOf(a.symbol) - MARKET_SYMBOLS.indexOf(b.symbol);
+    });
+}
+
 export async function GET() {
   const now = Date.now();
   if (cache && now - cache.timestamp < 60_000) {
@@ -43,11 +78,13 @@ export async function GET() {
   const apiKey = process.env.MARKET_API_KEY;
   const baseUrl = process.env.MARKET_API_BASE_URL;
 
-  if (!apiKey || !baseUrl) {
-    return NextResponse.json({ quotes: [], unavailable: true });
-  }
-
   try {
+    if (!apiKey || !baseUrl) {
+      const quotes = await fetchYahooQuotes();
+      cache = { quotes, timestamp: now };
+      return NextResponse.json({ quotes, delayed: true });
+    }
+
     const url = new URL(baseUrl);
     url.searchParams.set("symbol", MARKET_SYMBOLS.join(","));
     url.searchParams.set("apikey", apiKey);
