@@ -28,7 +28,7 @@ export default function JoinPage() {
             >
               <h1 className="flex flex-wrap items-center gap-2 text-3xl md:text-5xl lg:text-6xl font-serif tracking-tight leading-[1.05]">
                 JOIN
-                <W1Mark size="lg" className="h-auto w-32 md:w-44 lg:w-52" />
+                <W1Mark size="lg" className="-ml-10 h-auto w-32 md:-ml-14 md:w-44 lg:-ml-16 lg:w-52" />
               </h1>
 
               <SlashDivider delay={0.2} />
