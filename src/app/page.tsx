@@ -41,10 +41,10 @@ export default function Home() {
             className="absolute inset-0 bg-cover bg-center bg-no-repeat"
             style={{
               backgroundImage:
-                "linear-gradient(to right, rgba(0, 0, 0, 0.62) 0%, rgba(0, 0, 0, 0.34) 42%, rgba(0, 0, 0, 0.08) 100%), url('https://images.unsplash.com/photo-1518005020951-eccb494ad742?q=80&w=1920&auto=format&fit=crop')",
+                "linear-gradient(to right, rgba(18, 15, 12, 0.58) 0%, rgba(18, 15, 12, 0.22) 46%, rgba(18, 15, 12, 0.04) 100%), url('https://images.unsplash.com/photo-1519501025264-65ba15a82390?q=80&w=1920&auto=format&fit=crop')",
             }}
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/55 via-transparent to-black/20" />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/35 via-transparent to-black/10" />
 
           <div className="relative z-10 mx-auto max-w-7xl px-6 md:px-8 lg:px-10 w-full flex flex-col justify-center h-full pt-20">
             <motion.div
@@ -105,7 +105,7 @@ export default function Home() {
               </div>
             </motion.div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-10">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-0 border-y border-border">
               {[
                 {
                   title: "THE FUND",
@@ -139,7 +139,7 @@ export default function Home() {
                     delay: index * 0.1,
                     ease: "easeOut",
                   }}
-                  className="group border border-border bg-background p-8 md:p-10 flex flex-col h-full relative transition-all duration-500 hover:border-ink/40 hover:shadow-sm/5"
+                  className="group py-8 md:py-10 md:px-8 first:md:pl-0 last:md:pr-0 md:border-l md:border-border first:md:border-l-0 flex flex-col h-full relative"
                 >
                   <div className="mb-6">
                     <h3 className="text-xs font-sans font-medium tracking-[0.25em] uppercase text-muted mb-4">
@@ -148,7 +148,7 @@ export default function Home() {
                     <h4 className="text-xl md:text-2xl font-serif tracking-tight leading-[1.15] mb-4">
                       {pillar.subtitle}
                     </h4>
-                    <p className="text-muted leading-relaxed">{pillar.description}</p>
+                    <p className="text-muted leading-relaxed max-w-sm">{pillar.description}</p>
                   </div>
                   <div className="mt-auto">
                     <Button href={pillar.href} variant="tertiary">
@@ -176,24 +176,18 @@ export default function Home() {
           </div>
         </section>
 
-        <section className="relative h-[60vh] md:h-[70vh] flex items-center justify-center overflow-hidden bg-black">
-          <div
-            className="absolute inset-0 bg-cover bg-center bg-no-repeat"
-            style={{
-              backgroundImage:
-                "linear-gradient(to bottom, rgba(0, 0, 0, 0.28) 0%, rgba(0, 0, 0, 0.56) 100%), url('https://images.unsplash.com/photo-1497366754035-f200968a6e72?q=80&w=1920&auto=format&fit=crop')",
-            }}
-          />
-          <div className="absolute inset-0 bg-black/25" />
-          <div className="relative z-10 mx-auto max-w-7xl px-6 md:px-8 lg:px-10 text-center">
+        <section className="bg-background py-16 md:py-24 border-t border-border">
+          <div className="mx-auto max-w-7xl px-6 md:px-8 lg:px-10">
             <motion.h2
               initial={{ opacity: 0, y: 40 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, margin: "-100px" }}
               transition={{ duration: 1, ease: "easeOut" }}
-              className="text-2xl md:text-4xl lg:text-5xl font-serif tracking-tight leading-[1.05] text-white max-w-4xl mx-auto"
+              className="text-4xl md:text-6xl lg:text-7xl font-serif tracking-tight leading-[0.98] text-ink max-w-4xl"
             >
-              Rigorous research. Disciplined decisions. Evidence over assumption.
+              Rigorous research.<br />
+              Disciplined decisions.<br />
+              Evidence over assumption.
             </motion.h2>
           </div>
         </section>

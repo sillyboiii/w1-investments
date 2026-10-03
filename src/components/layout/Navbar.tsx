@@ -18,6 +18,7 @@ export function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const pathname = usePathname();
+  const useLightNav = pathname === "/" && !isScrolled && !isOpen;
 
   useEffect(() => {
     const handleScroll = () => {
@@ -48,7 +49,11 @@ export function Navbar() {
         }`}
       >
         <nav className="mx-auto max-w-7xl px-6 md:px-8 lg:px-10 py-3 md:py-4 flex items-center justify-between">
-          <LogoImageAlt href="/" size="lg" className="group" />
+          <LogoImageAlt
+            href="/"
+            size="lg"
+            className={`group transition duration-300 ${useLightNav ? "brightness-0 invert" : ""}`}
+          />
 
           <div className="hidden lg:flex items-center gap-8 xl:gap-10">
             {navLinks.map((link) => {
@@ -57,13 +62,19 @@ export function Navbar() {
                 <Link
                   key={link.href}
                   href={link.href}
-                  className={`group relative text-sm font-medium tracking-tight transition-colors hover:text-ink ${
-                    isActive ? "text-ink" : "text-foreground"
+                  className={`group relative text-sm font-medium tracking-tight transition-colors ${
+                    useLightNav
+                      ? "text-white/85 hover:text-white"
+                      : isActive
+                      ? "text-ink hover:text-ink"
+                      : "text-foreground hover:text-ink"
                   }`}
                 >
                   {link.label}
                   <span
-                    className={`absolute -bottom-1 left-0 h-px bg-ink transition-all duration-300 ${
+                    className={`absolute -bottom-1 left-0 h-px transition-all duration-300 ${
+                      useLightNav ? "bg-white" : "bg-ink"
+                    } ${
                       isActive ? "w-full" : "w-0 group-hover:w-full"
                     }`}
                   />
@@ -72,7 +83,11 @@ export function Navbar() {
             })}
             <Link
               href="/join"
-              className="group inline-flex items-center gap-1.5 text-sm font-medium tracking-tight border-b border-border pb-1 transition-colors hover:border-ink hover:text-ink ml-2"
+              className={`group inline-flex items-center gap-1.5 text-sm font-medium tracking-tight border-b pb-1 transition-colors ml-2 ${
+                useLightNav
+                  ? "text-white/85 border-white/30 hover:text-white hover:border-white"
+                  : "border-border hover:border-ink hover:text-ink"
+              }`}
             >
               Join W1
               <svg
@@ -99,9 +114,9 @@ export function Navbar() {
             aria-label="Toggle menu"
             aria-expanded={isOpen}
           >
-            <span className={`h-px w-6 bg-foreground transition-transform duration-300 ${isOpen ? "rotate-45 translate-y-2" : ""}`} />
-            <span className={`h-px w-6 bg-foreground transition-opacity duration-300 ${isOpen ? "opacity-0" : ""}`} />
-            <span className={`h-px w-6 bg-foreground transition-transform duration-300 ${isOpen ? "-rotate-45 -translate-y-2" : ""}`} />
+            <span className={`h-px w-6 transition-transform duration-300 ${useLightNav ? "bg-white" : "bg-foreground"} ${isOpen ? "rotate-45 translate-y-2" : ""}`} />
+            <span className={`h-px w-6 transition-opacity duration-300 ${useLightNav ? "bg-white" : "bg-foreground"} ${isOpen ? "opacity-0" : ""}`} />
+            <span className={`h-px w-6 transition-transform duration-300 ${useLightNav ? "bg-white" : "bg-foreground"} ${isOpen ? "-rotate-45 -translate-y-2" : ""}`} />
           </button>
         </nav>
       </header>
