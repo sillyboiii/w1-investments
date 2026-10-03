@@ -73,7 +73,7 @@ export default function Home() {
                 variants={itemVariants}
                 className="flex flex-col sm:flex-row items-start gap-4 sm:gap-6"
               >
-                <Button href="/fund" variant="primary" className="bg-white text-ink border-white hover:bg-white/90">
+                <Button href="/fund" variant="primary" className="!bg-white !text-ink !border-white hover:!bg-white/90">
                   Explore the Fund →
                 </Button>
                 <Button href="/research" variant="secondary" className="bg-white/10 text-white border-white/30 backdrop-blur-sm hover:bg-white/20 hover:border-white/50">
