@@ -89,7 +89,7 @@ export function Navbar() {
                   : "border-border hover:border-ink hover:text-ink"
               }`}
             >
-              Join W1
+              Join
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 width="16"
@@ -152,7 +152,7 @@ export function Navbar() {
                 onClick={() => setIsOpen(false)}
                 className="inline-flex items-center gap-2 text-3xl md:text-4xl font-serif tracking-tight py-2 mt-4"
               >
-                Join W1 →
+                Join →
               </Link>
             </motion.nav>
           </motion.div>
