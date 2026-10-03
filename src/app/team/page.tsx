@@ -3,32 +3,60 @@
 import { motion } from "framer-motion";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
-import { SlashDivider } from "@/components/ui/SlashDivider";
+import { Button } from "@/components/ui/Button";
 
-const divisions = [
+const collageImages = [
   {
-    name: "Investment",
-    roles: [
-      "Fundamental Research",
-      "Macro Research",
-      "Quantitative Research & Portfolio Risk",
-      "Digital Assets Research",
-    ],
+    src: "https://images.unsplash.com/photo-1521737604893-d14cc237f11d?q=80&w=900&auto=format&fit=crop",
+    className: "hidden lg:block absolute -top-10 left-[30%] h-40 w-72",
   },
   {
-    name: "Platform",
-    roles: [
-      "Operations",
-      "Brand & Creative",
-      "Media",
-      "Research Publishing",
-      "Partnerships",
-      "Events",
-    ],
+    src: "https://images.unsplash.com/photo-1517048676732-d65bc937f952?q=80&w=900&auto=format&fit=crop",
+    className: "hidden lg:block absolute top-32 -right-10 h-44 w-72",
   },
   {
-    name: "Academy / Training",
-    roles: [],
+    src: "https://images.unsplash.com/photo-1556761175-b413da4baf72?q=80&w=900&auto=format&fit=crop",
+    className: "hidden lg:block absolute bottom-10 -left-12 h-48 w-80",
+  },
+  {
+    src: "https://images.unsplash.com/photo-1551836022-d5d88e9218df?q=80&w=900&auto=format&fit=crop",
+    className: "hidden lg:block absolute -bottom-12 right-[14%] h-40 w-72",
+  },
+  {
+    src: "https://images.unsplash.com/photo-1519389950473-47ba0277781c?q=80&w=900&auto=format&fit=crop",
+    className: "block lg:hidden mt-10 h-64 w-full",
+  },
+];
+
+const leadership = [
+  {
+    name: "Adam",
+    role: "Founder & President",
+    detail: "Finance BSc · University of Westminster",
+  },
+  {
+    name: "Vice President",
+    role: "Vice President",
+    detail: "University of Westminster",
+  },
+];
+
+const functions = [
+  {
+    name: "Fundamental Research",
+    description: "Company analysis, financial modelling, valuation and investment theses.",
+  },
+  {
+    name: "Macro Research",
+    description: "Economic regimes, rates, currencies, commodities and broader market conditions.",
+  },
+  {
+    name: "Quantitative Research & Portfolio Risk",
+    description: "Data-driven research, systematic testing, portfolio exposures and risk analysis.",
+  },
+  {
+    name: "Digital Assets Research",
+    description: "Digital assets, market structure, token economics and on-chain ecosystems.",
   },
 ];
 
@@ -36,63 +64,122 @@ export default function TeamPage() {
   return (
     <div className="flex min-h-full flex-col">
       <Navbar />
-      <main className="flex-1 pt-24 md:pt-32">
-        <section>
+      <main className="flex-1">
+        <section className="relative min-h-[88vh] overflow-hidden bg-background pt-28 md:pt-32">
           <div className="mx-auto max-w-7xl px-6 md:px-8 lg:px-10">
             <motion.div
               initial={{ opacity: 0, y: 40 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 1, ease: [0.25, 0.1, 0.25, 1] }}
+              transition={{ duration: 1, ease: "easeOut" }}
+              className="relative z-10 mx-auto flex min-h-[68vh] max-w-5xl flex-col items-center justify-center text-center"
             >
-              <h1 className="text-3xl md:text-5xl lg:text-6xl font-serif tracking-tight leading-[1.05]">
-                TEAM
+              <p className="mb-4 text-xs uppercase tracking-[0.25em] text-muted">Team</p>
+              <h1 className="text-4xl md:text-6xl lg:text-7xl font-serif tracking-tight leading-[0.98] text-ink">
+                Built by students.
+                <br />
+                Driven by research.
               </h1>
-              <p className="text-xl md:text-2xl font-serif tracking-tight text-muted mt-4 max-w-3xl">
-                Clean hierarchy with space for profiles.
+              <p className="mt-8 max-w-2xl text-base md:text-lg text-muted leading-relaxed">
+                W1 brings together students who research markets, challenge investment ideas and help build the operating system of a serious student-led fund.
               </p>
-
-              <SlashDivider delay={0.2} />
+              <p className="mt-5 max-w-xl text-sm text-muted leading-relaxed">
+                Photography here is designed for future W1 candid moments: research sessions, investment meetings, London/campus work and members in discussion.
+              </p>
             </motion.div>
+
+            {collageImages.map((image) => (
+              <motion.div
+                key={image.src}
+                initial={{ opacity: 0, y: 30 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 1, ease: "easeOut" }}
+                className={`${image.className} overflow-hidden bg-stone-200`}
+              >
+                <div
+                  className="h-full w-full bg-cover bg-center grayscale-[20%] saturate-[0.85]"
+                  style={{ backgroundImage: `url('${image.src}')` }}
+                />
+              </motion.div>
+            ))}
           </div>
         </section>
 
-        <section className="py-16 md:py-24">
+        <section className="border-t border-border bg-background py-16 md:py-24">
           <div className="mx-auto max-w-7xl px-6 md:px-8 lg:px-10">
-            <div className="border border-border p-8 md:p-12">
-              <p className="text-sm uppercase tracking-widest text-muted mb-6">
-                Team Structure
-              </p>
-              <div className="space-y-10">
-                <div>
-                  <h3 className="text-xl md:text-2xl font-serif tracking-tight mb-2">
-                    Leadership
+            <div className="mb-14 flex flex-col justify-between gap-8 border-t border-border pt-8 md:flex-row md:items-end">
+              <h2 className="text-3xl md:text-5xl font-serif tracking-tight leading-[1.05] max-w-3xl">
+                Meet the team building W1.
+              </h2>
+              <div className="text-sm text-muted">Leadership</div>
+            </div>
+
+            <div className="grid grid-cols-1 gap-10 md:grid-cols-2">
+              {leadership.map((member) => (
+                <article key={member.name} className="border-t border-border pt-6">
+                  <div className="mb-6 aspect-[4/5] bg-stone-200" />
+                  <h3 className="text-3xl md:text-4xl font-serif tracking-tight leading-none">
+                    {member.name}
                   </h3>
-                  <ul className="space-y-2 text-muted">
-                    <li>Founder / President</li>
-                    <li>Vice President</li>
-                    <li>CIO / Head of Investments</li>
-                  </ul>
+                  <p className="mt-3 text-sm uppercase tracking-[0.2em] text-muted">{member.role}</p>
+                  <p className="mt-3 text-muted">{member.detail}</p>
+                  <a className="mt-5 inline-block border-b border-border pb-1 text-sm hover:border-ink" href="#">
+                    LinkedIn →
+                  </a>
+                </article>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        <section className="bg-background py-16 md:py-24 border-t border-border">
+          <div className="mx-auto max-w-7xl px-6 md:px-8 lg:px-10">
+            <h2 className="text-2xl md:text-4xl font-serif tracking-tight mb-10">
+              Investment Functions
+            </h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 border-y border-border">
+              {functions.map((item, index) => (
+                <div
+                  key={item.name}
+                  className={`py-7 md:p-8 ${index % 2 === 1 ? "md:border-l" : ""} ${index > 1 ? "md:border-t" : ""} border-border`}
+                >
+                  <h3 className="text-lg md:text-xl font-serif tracking-tight mb-3">{item.name}</h3>
+                  <p className="text-muted leading-relaxed max-w-md">{item.description}</p>
                 </div>
-                {divisions.map((division) => (
-                  <div key={division.name}>
-                    <h3 className="text-xl md:text-2xl font-serif tracking-tight mb-3">
-                      {division.name}
-                    </h3>
-                    {division.roles.length > 0 ? (
-                      <ul className="space-y-2 text-muted">
-                        {division.roles.map((role) => (
-                          <li key={role}>{role}</li>
-                        ))}
-                      </ul>
-                    ) : (
-                      <p className="text-muted">—</p>
-                    )}
-                  </div>
-                ))}
+              ))}
+            </div>
+          </div>
+        </section>
+
+        <section className="bg-ink text-white py-16 md:py-24">
+          <div className="mx-auto max-w-7xl px-6 md:px-8 lg:px-10">
+            <div className="grid grid-cols-1 md:grid-cols-[1fr_1.4fr] gap-10 md:gap-16">
+              <h2 className="text-3xl md:text-5xl font-serif tracking-tight leading-[1.05]">
+                Investment decisions are challenged collectively.
+              </h2>
+              <div>
+                <p className="text-white/75 leading-relaxed mb-8">
+                  Researched ideas are presented to the Investment Committee, challenged from multiple perspectives and either approved, revised or rejected.
+                </p>
+                <div className="flex flex-wrap gap-3 text-xs uppercase tracking-[0.2em] text-white/80">
+                  <span>Approved</span>
+                  <span>/</span>
+                  <span>Revised</span>
+                  <span>/</span>
+                  <span>Rejected</span>
+                </div>
               </div>
-              <p className="text-sm text-muted mt-10 italic">
-                Team cards with headshot, name, role, division, bio and LinkedIn are supported by the component system. Profiles will be added as the team forms.
+            </div>
+          </div>
+        </section>
+
+        <section className="bg-background py-16 md:py-24">
+          <div className="mx-auto max-w-7xl px-6 md:px-8 lg:px-10">
+            <div className="border-t border-border pt-10">
+              <h2 className="text-3xl md:text-5xl font-serif tracking-tight mb-6">Help build W1.</h2>
+              <p className="text-muted mb-8 max-w-2xl">
+                Fundamental · Macro · Quant · Digital Assets · Platform / Operations
               </p>
+              <Button href="/join" variant="primary">Explore Opportunities →</Button>
             </div>
           </div>
         </section>

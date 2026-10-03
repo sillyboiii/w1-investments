@@ -100,6 +100,33 @@ const processSteps = [
   },
 ];
 
+const processPhases = [
+  {
+    phase: "01",
+    title: "DISCOVER",
+    summary: "Source and filter ideas before serious research time is committed.",
+    steps: processSteps.slice(0, 2),
+  },
+  {
+    phase: "02",
+    title: "BUILD",
+    summary: "Turn promising ideas into a researched thesis, model and valuation view.",
+    steps: processSteps.slice(2, 5),
+  },
+  {
+    phase: "03",
+    title: "CHALLENGE",
+    summary: "Test the thesis through macro, quant and committee scrutiny.",
+    steps: processSteps.slice(5, 8),
+  },
+  {
+    phase: "04",
+    title: "MANAGE",
+    summary: "Translate conviction into portfolio action, then keep reassessing the evidence.",
+    steps: processSteps.slice(8),
+  },
+];
+
 export default function FundPage() {
   return (
     <div className="flex min-h-full flex-col">
@@ -170,41 +197,51 @@ export default function FundPage() {
             <p className="text-base md:text-lg text-muted max-w-3xl mb-12">
               The investment process is iterative, with feedback loops between research, risk and committee decisions.
             </p>
-            <div className="space-y-8 md:space-y-10">
-              {processSteps.map((step, index) => (
+            <div className="grid grid-cols-1 lg:grid-cols-4 border-y border-border">
+              {processPhases.map((phase, index) => (
                 <motion.div
-                  key={step.step}
+                  key={phase.phase}
                   initial={{ opacity: 0, y: 40 }}
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true, margin: "-80px" }}
                   transition={{
                     duration: 0.9,
-                    delay: index * 0.05,
+                    delay: index * 0.08,
                     ease: "easeOut",
                   }}
-                  className="border border-border p-6 md:p-8 lg:p-10"
+                  className="py-7 lg:py-8 lg:px-6 lg:border-l lg:border-border first:lg:border-l-0"
                 >
-                  <div className="flex flex-col md:flex-row md:items-start gap-6">
-                    <div className="shrink-0">
-                      <span className="text-sm md:text-base font-sans font-medium tracking-[0.2em] text-muted">
-                        {step.step}
-                      </span>
-                    </div>
-                    <div className="flex-1">
-                      <h3 className="text-xl md:text-2xl lg:text-3xl font-serif tracking-tight leading-[1.1] mb-2">
-                        {step.title}
-                      </h3>
-                      <p className="text-base md:text-lg font-serif tracking-tight text-muted mb-4">
-                        {step.subtitle}
-                      </p>
-                      <p className="text-sm md:text-base leading-relaxed text-muted max-w-4xl">
-                        {step.description}
-                      </p>
-                    </div>
+                  <span className="block text-xs font-sans font-medium tracking-[0.25em] text-muted mb-4">
+                    {phase.phase}
+                  </span>
+                  <h3 className="text-2xl md:text-3xl font-serif tracking-tight mb-3">
+                    {phase.title}
+                  </h3>
+                  <p className="text-sm text-muted leading-relaxed mb-6 max-w-sm">
+                    {phase.summary}
+                  </p>
+                  <div className="space-y-3">
+                    {phase.steps.map((step) => (
+                      <details key={step.step} className="group border-t border-border pt-3">
+                        <summary className="flex cursor-pointer list-none items-start justify-between gap-4 text-sm font-medium tracking-tight">
+                          <span>{step.title}</span>
+                          <span className="text-muted transition-transform group-open:rotate-45">+</span>
+                        </summary>
+                        <p className="mt-2 text-sm font-serif text-muted tracking-tight">
+                          {step.subtitle}
+                        </p>
+                        <p className="mt-2 text-sm leading-relaxed text-muted">
+                          {step.description}
+                        </p>
+                      </details>
+                    ))}
                   </div>
                 </motion.div>
               ))}
             </div>
+            <p className="mt-8 text-sm md:text-base text-muted max-w-3xl">
+              The process is iterative. New evidence can return an idea to an earlier stage at any point.
+            </p>
           </div>
         </section>
       </main>
