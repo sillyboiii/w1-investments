@@ -2,6 +2,7 @@
 
 import { motion } from "framer-motion";
 import Link from "next/link";
+import { useState } from "react";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { Button } from "@/components/ui/Button";
@@ -105,6 +106,8 @@ function Connector() {
 }
 
 export default function TeamPage() {
+  const [isOrgChartOpen, setIsOrgChartOpen] = useState(false);
+
   return (
     <div className="flex min-h-full flex-col">
       <Navbar />
@@ -166,40 +169,79 @@ export default function TeamPage() {
               </div>
             </div>
 
-            <div className="lg:hidden space-y-3 border-y border-border py-5">
-              <details open className="border-t border-border pt-4 first:border-t-0 first:pt-0">
-                <summary className="cursor-pointer list-none text-sm uppercase tracking-[0.18em] text-muted">Leadership</summary>
-                <div className="mt-4 space-y-4">
-                  {leadership.map((item) => <LeadershipNode key={item.label} item={item} />)}
-                </div>
-              </details>
-
-              <details className="border-t border-border pt-4">
-                <summary className="cursor-pointer list-none text-sm uppercase tracking-[0.18em] text-muted">Investment Function</summary>
-                <div className="mt-4 space-y-5">
-                  {researchFunctions.map((group) => (
-                    <div key={group.name} className="border-t border-border pt-4">
-                      <h3 className="font-serif text-xl tracking-tight leading-tight">{group.name}</h3>
-                      <OpenPosition title={group.lead} />
-                      <div className="mt-4 space-y-2 text-sm text-muted leading-relaxed">
-                        {group.roles.map((role) => <OpenPosition key={role} title={role} compact />)}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </details>
-
-              <details className="border-t border-border pt-4">
-                <summary className="cursor-pointer list-none text-sm uppercase tracking-[0.18em] text-muted">Platform / Operations</summary>
-                <div className="mt-4 space-y-2 text-sm text-muted leading-relaxed">
-                  {platformRoles.map((role, index) => (
-                    <OpenPosition key={role} title={role} compact={index !== 0} />
-                  ))}
-                </div>
-              </details>
+            <div className="lg:hidden border-y border-border py-5">
+              <p className="text-xs uppercase tracking-[0.2em] text-muted">Organisational structure</p>
+              <h2 className="mt-3 text-2xl font-serif tracking-tight">View the full W1 chart.</h2>
+              <p className="mt-3 text-sm text-muted leading-relaxed">
+                Open the chart in a separate window so the hierarchy stays readable on mobile.
+              </p>
+              <button
+                type="button"
+                onClick={() => setIsOrgChartOpen(true)}
+                className="mt-5 inline-flex items-center border-b border-border pb-1 text-sm font-medium hover:border-ink"
+              >
+                Open organisation chart
+              </button>
             </div>
           </div>
         </section>
+
+        {isOrgChartOpen && (
+          <div className="fixed inset-0 z-[80] bg-ink/45 px-3 py-4 backdrop-blur-sm lg:hidden">
+            <div className="mx-auto flex max-h-full max-w-md flex-col overflow-hidden bg-background border border-border">
+              <div className="flex items-center justify-between border-b border-border px-4 py-3">
+                <div>
+                  <p className="text-xs uppercase tracking-[0.2em] text-muted">W1 structure</p>
+                  <h2 className="text-xl font-serif tracking-tight">Organisation chart</h2>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setIsOrgChartOpen(false)}
+                  className="border-b border-border pb-1 text-sm text-muted hover:border-ink hover:text-ink"
+                >
+                  Close
+                </button>
+              </div>
+
+              <div className="overflow-y-auto px-4 py-5">
+                <div className="space-y-4">
+                  <section>
+                    <p className="mb-4 text-xs uppercase tracking-[0.18em] text-muted">Leadership</p>
+                    <div className="space-y-4">
+                      {leadership.map((item) => <LeadershipNode key={item.label} item={item} />)}
+                    </div>
+                  </section>
+
+                  <section className="border-t border-border pt-5">
+                    <p className="mb-4 text-xs uppercase tracking-[0.18em] text-muted">Investment function</p>
+                    <div className="space-y-5">
+                      {researchFunctions.map((group) => (
+                        <details key={group.name} open className="border-t border-border pt-4">
+                          <summary className="cursor-pointer list-none font-serif text-xl tracking-tight leading-tight">
+                            {group.name}
+                          </summary>
+                          <div className="mt-4 space-y-2">
+                            <OpenPosition title={group.lead} />
+                            {group.roles.map((role) => <OpenPosition key={role} title={role} compact />)}
+                          </div>
+                        </details>
+                      ))}
+                    </div>
+                  </section>
+
+                  <section className="border-t border-border pt-5">
+                    <p className="mb-4 text-xs uppercase tracking-[0.18em] text-muted">Platform / Operations</p>
+                    <div className="space-y-2">
+                      {platformRoles.map((role, index) => (
+                        <OpenPosition key={role} title={role} compact={index !== 0} />
+                      ))}
+                    </div>
+                  </section>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
 
         <section className="border-t border-border py-12 md:py-24">
           <div className="mx-auto max-w-7xl px-5 md:px-8 lg:px-10">
