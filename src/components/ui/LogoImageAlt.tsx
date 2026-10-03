@@ -23,7 +23,7 @@ export function LogoImageAlt({
   const imageSizes = {
     sm: "w-24 sm:w-[120px]",
     md: "w-32 sm:w-[170px]",
-    lg: "w-40 sm:w-[200px] md:w-[240px]",
+    lg: "w-48 sm:w-[210px] md:w-[240px]",
     xl: "w-56 md:w-[320px]",
     "2xl": "w-72 md:w-[420px]",
   };
