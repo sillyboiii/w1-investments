@@ -46,7 +46,7 @@ export default function AboutPage() {
                   We believe investment work should be methodical, evidence-based and intellectually honest. Ideas must be defensible, assumptions must be challenged, and conviction must be earned through research.
                 </p>
                 <p>
-                  The sophistication should come from typography, research, information design, photography, whitespace and consistency — not fake financial complexity.
+                  The sophistication should come from typography, research, information design, photography, whitespace and consistency - not fake financial complexity.
                 </p>
               </div>
             </div>
