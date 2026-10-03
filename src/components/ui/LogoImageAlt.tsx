@@ -20,6 +20,14 @@ export function LogoImageAlt({
     "2xl": { width: 420, height: 122 },
   };
 
+  const imageSizes = {
+    sm: "w-24 sm:w-[120px]",
+    md: "w-32 sm:w-[170px]",
+    lg: "w-40 sm:w-[200px] md:w-[240px]",
+    xl: "w-56 md:w-[320px]",
+    "2xl": "w-72 md:w-[420px]",
+  };
+
   const logo = (
     <div className={`flex items-center ${className}`}>
       <Image
@@ -28,7 +36,7 @@ export function LogoImageAlt({
         width={sizes[size].width}
         height={sizes[size].height}
         priority={size === "xl" || size === "2xl"}
-        className="object-contain"
+        className={`h-auto object-contain ${imageSizes[size]}`}
       />
     </div>
   );

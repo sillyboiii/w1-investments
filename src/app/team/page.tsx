@@ -9,21 +9,15 @@ import { Button } from "@/components/ui/Button";
 const leadership = [
   {
     label: "Founder / President",
-    name: "Adam",
     role: "Founder & President",
-    status: "filled",
   },
   {
     label: "Vice President",
-    name: "Open position",
     role: "Vice President",
-    status: "open",
   },
   {
     label: "CIO / Head of Investments",
-    name: "Open position",
     role: "CIO / Head of Investments",
-    status: "open",
   },
 ];
 
@@ -59,14 +53,19 @@ const platformRoles = [
   "Partnerships & Events",
 ];
 
-function OpenPosition({ title }: { title: string }) {
+function OpenPosition({ title, compact = false }: { title: string; compact?: boolean }) {
   return (
     <Link
       href="/join"
-      className="block border-t border-border pt-3 text-sm text-muted transition-colors hover:text-ink"
+      className={`block border-t border-border text-sm text-muted transition-colors hover:text-ink ${compact ? "pt-2" : "pt-3"}`}
     >
       <span className="block text-xs uppercase tracking-[0.2em] text-muted">Open position</span>
       <span className="mt-1 block font-medium text-foreground">{title}</span>
+      {!compact && (
+        <span className="mt-2 block text-xs leading-relaxed text-muted">
+          Profile, LinkedIn, research interests and selected W1 work will be added once filled.
+        </span>
+      )}
     </Link>
   );
 }
@@ -75,13 +74,14 @@ function LeadershipNode({ item }: { item: (typeof leadership)[number] }) {
   return (
     <div className="mx-auto w-full max-w-sm border-y border-border bg-background py-5 text-center">
       <p className="text-xs uppercase tracking-[0.22em] text-muted">{item.label}</p>
-      <h3 className="mt-3 text-2xl font-serif tracking-tight text-ink">{item.name}</h3>
+      <h3 className="mt-3 text-2xl font-serif tracking-tight text-ink">Open position</h3>
       <p className="mt-2 text-sm text-muted">{item.role}</p>
-      {item.status === "open" && (
-        <Link href="/join" className="mt-3 inline-block border-b border-border pb-1 text-xs text-muted hover:border-ink hover:text-ink">
-          Recruit for this role
-        </Link>
-      )}
+      <p className="mx-auto mt-3 max-w-xs text-xs leading-relaxed text-muted">
+        Profile, LinkedIn, course, research interests and selected W1 work will be added once appointed.
+      </p>
+      <Link href="/join" className="mt-3 inline-block border-b border-border pb-1 text-xs text-muted hover:border-ink hover:text-ink">
+        Recruit for this role
+      </Link>
     </div>
   );
 }
@@ -95,8 +95,8 @@ export default function TeamPage() {
     <div className="flex min-h-full flex-col">
       <Navbar />
       <main className="flex-1 bg-background">
-        <section className="pt-28 md:pt-32 pb-10 md:pb-14">
-          <div className="mx-auto max-w-7xl px-6 md:px-8 lg:px-10">
+        <section className="pt-24 pb-8 md:pt-32 md:pb-14">
+          <div className="mx-auto max-w-7xl px-5 md:px-8 lg:px-10">
             <motion.div
               initial={{ opacity: 0, y: 32 }}
               animate={{ opacity: 1, y: 0 }}
@@ -104,18 +104,18 @@ export default function TeamPage() {
               className="max-w-4xl"
             >
               <p className="mb-5 text-xs uppercase tracking-[0.25em] text-muted">Team</p>
-              <h1 className="text-4xl md:text-6xl lg:text-7xl font-serif tracking-tight leading-[0.98] text-ink">
+              <h1 className="text-4xl md:text-6xl lg:text-7xl font-serif tracking-tight leading-[1.02] md:leading-[0.98] text-ink">
                 The people behind W1.
               </h1>
-              <p className="mt-7 max-w-2xl text-base md:text-lg text-muted leading-relaxed">
+              <p className="mt-5 md:mt-7 max-w-2xl text-base md:text-lg text-muted leading-relaxed">
                 W1 brings together students across investment research, portfolio management and operations within one investment process.
               </p>
             </motion.div>
           </div>
         </section>
 
-        <section className="pb-16 md:pb-24">
-          <div className="mx-auto max-w-[92rem] px-6 md:px-8 lg:px-10">
+        <section className="pb-12 md:pb-24">
+          <div className="mx-auto max-w-[92rem] px-5 md:px-8 lg:px-10">
             <div className="hidden lg:block border-y border-border py-10">
               <div className="mx-auto max-w-5xl">
                 {leadership.map((item, index) => (
@@ -132,7 +132,7 @@ export default function TeamPage() {
                 {researchFunctions.map((group) => (
                   <div key={group.name} className="border-t border-border pt-5">
                     <p className="min-h-12 text-xs uppercase tracking-[0.2em] text-muted">{group.name}</p>
-                    <OpenPosition title={group.lead} />
+                    <OpenPosition title={group.lead} compact />
                     <div className="mt-5 space-y-2 text-sm text-muted">
                       {group.roles.map((role) => (
                         <div key={role} className="border-t border-border pt-2">{role}</div>
@@ -142,7 +142,7 @@ export default function TeamPage() {
                 ))}
                 <div className="border-t border-border pt-5">
                   <p className="min-h-12 text-xs uppercase tracking-[0.2em] text-muted">Platform / Operations</p>
-                  <OpenPosition title={platformRoles[0]} />
+                  <OpenPosition title={platformRoles[0]} compact />
                   <div className="mt-5 space-y-2 text-sm text-muted">
                     {platformRoles.slice(1).map((role) => (
                       <div key={role} className="border-t border-border pt-2">{role}</div>
@@ -152,23 +152,23 @@ export default function TeamPage() {
               </div>
             </div>
 
-            <div className="lg:hidden space-y-4 border-y border-border py-6">
+            <div className="lg:hidden space-y-3 border-y border-border py-5">
               <details open className="border-t border-border pt-4 first:border-t-0 first:pt-0">
-                <summary className="cursor-pointer list-none text-sm uppercase tracking-[0.2em] text-muted">Leadership</summary>
-                <div className="mt-5 space-y-5">
+                <summary className="cursor-pointer list-none text-sm uppercase tracking-[0.18em] text-muted">Leadership</summary>
+                <div className="mt-4 space-y-4">
                   {leadership.map((item) => <LeadershipNode key={item.label} item={item} />)}
                 </div>
               </details>
 
               <details className="border-t border-border pt-4">
-                <summary className="cursor-pointer list-none text-sm uppercase tracking-[0.2em] text-muted">Investment Function</summary>
-                <div className="mt-5 space-y-6">
+                <summary className="cursor-pointer list-none text-sm uppercase tracking-[0.18em] text-muted">Investment Function</summary>
+                <div className="mt-4 space-y-5">
                   {researchFunctions.map((group) => (
                     <div key={group.name} className="border-t border-border pt-4">
-                      <h3 className="font-serif text-xl tracking-tight">{group.name}</h3>
+                      <h3 className="font-serif text-xl tracking-tight leading-tight">{group.name}</h3>
                       <OpenPosition title={group.lead} />
-                      <div className="mt-4 space-y-2 text-sm text-muted">
-                        {group.roles.map((role) => <div key={role}>{role}</div>)}
+                      <div className="mt-4 space-y-2 text-sm text-muted leading-relaxed">
+                        {group.roles.map((role) => <div key={role} className="border-t border-border pt-2">{role}</div>)}
                       </div>
                     </div>
                   ))}
@@ -176,8 +176,8 @@ export default function TeamPage() {
               </details>
 
               <details className="border-t border-border pt-4">
-                <summary className="cursor-pointer list-none text-sm uppercase tracking-[0.2em] text-muted">Platform / Operations</summary>
-                <div className="mt-5 space-y-2 text-sm text-muted">
+                <summary className="cursor-pointer list-none text-sm uppercase tracking-[0.18em] text-muted">Platform / Operations</summary>
+                <div className="mt-4 space-y-2 text-sm text-muted leading-relaxed">
                   {platformRoles.map((role, index) => (
                     index === 0 ? <OpenPosition key={role} title={role} /> : <div key={role}>{role}</div>
                   ))}
@@ -187,8 +187,8 @@ export default function TeamPage() {
           </div>
         </section>
 
-        <section className="border-t border-border py-16 md:py-24">
-          <div className="mx-auto max-w-7xl px-6 md:px-8 lg:px-10">
+        <section className="border-t border-border py-12 md:py-24">
+          <div className="mx-auto max-w-7xl px-5 md:px-8 lg:px-10">
             <div className="grid grid-cols-1 md:grid-cols-[0.9fr_1.4fr] gap-10 md:gap-16">
               <h2 className="text-3xl md:text-5xl font-serif tracking-tight leading-[1.05]">
                 Investment decisions are challenged collectively.
@@ -197,9 +197,9 @@ export default function TeamPage() {
                 <p className="text-muted leading-relaxed mb-8 max-w-2xl">
                   The Investment Committee brings together senior members of W1 to review research, challenge assumptions and determine whether an investment should be approved, revised or rejected.
                 </p>
-                <div className="grid grid-cols-2 md:grid-cols-4 border-y border-border text-xs uppercase tracking-[0.2em] text-muted">
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 border-y border-border text-xs uppercase tracking-[0.2em] text-muted">
                   {['Present', 'Challenge', 'Revise', 'Decide'].map((step, index) => (
-                    <div key={step} className={`py-4 ${index > 0 ? 'md:border-l' : ''} border-border`}>
+                    <div key={step} className={`py-4 ${index > 0 ? 'sm:border-l' : ''} ${index > 1 ? 'sm:border-t md:border-t-0' : ''} border-border`}>
                       {step}
                     </div>
                   ))}
@@ -212,33 +212,19 @@ export default function TeamPage() {
           </div>
         </section>
 
-        <section className="border-t border-border py-16 md:py-24">
-          <div className="mx-auto max-w-7xl px-6 md:px-8 lg:px-10">
+        <section className="border-t border-border py-12 md:py-24">
+          <div className="mx-auto max-w-7xl px-5 md:px-8 lg:px-10">
             <div className="mb-12 flex flex-col justify-between gap-8 md:flex-row md:items-end">
               <h2 className="text-3xl md:text-5xl font-serif tracking-tight leading-[1.05] max-w-3xl">
-                Current members.
+                Member profiles.
               </h2>
               <p className="max-w-md text-sm text-muted">
-                Only confirmed W1 members appear as people. Open roles stay marked as open positions until appointed.
+                Profiles will appear here once roles are appointed, including LinkedIn, course, research interests and selected W1 work.
               </p>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-              <details className="group border-y border-border py-5">
-                <summary className="cursor-pointer list-none">
-                  <div className="aspect-[4/5] bg-stone-200" />
-                  <h3 className="mt-5 text-3xl font-serif tracking-tight">Adam</h3>
-                  <p className="mt-2 text-xs uppercase tracking-[0.2em] text-muted">Founder & President</p>
-                  <p className="mt-2 text-sm text-muted">Leadership</p>
-                </summary>
-                <div className="mt-6 space-y-3 border-t border-border pt-5 text-sm text-muted leading-relaxed">
-                  <p>Founder & President of W1.</p>
-                  <p>University: University of Westminster</p>
-                  <p>Course: Finance BSc</p>
-                  <p>Research interests and selected W1 research will be added once available.</p>
-                  <a className="inline-block border-b border-border pb-1 hover:border-ink hover:text-ink" href="#">LinkedIn</a>
-                </div>
-              </details>
+            <div className="border-y border-border py-8 text-muted">
+              No confirmed public member profiles yet.
             </div>
 
             <div className="mt-16 border-t border-border pt-10">
