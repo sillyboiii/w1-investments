@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { fetchMarketData, type TickerItem } from "@/lib/marketData";
+import type { TickerItem } from "@/lib/marketData";
 
 export function MarketTicker() {
   const [quotes, setQuotes] = useState<TickerItem[]>([]);
@@ -12,8 +12,10 @@ export function MarketTicker() {
     const loadData = async () => {
       try {
         setIsLoading(true);
-        const data = await fetchMarketData();
-        setQuotes(data);
+        const response = await fetch("/api/market", { cache: "no-store" });
+        if (!response.ok) throw new Error("Failed to load market data");
+        const data = (await response.json()) as { quotes?: TickerItem[] };
+        setQuotes(data.quotes ?? []);
         setError(null);
       } catch (err) {
         setError(err instanceof Error ? err.message : "Failed to load market data");
@@ -27,15 +29,7 @@ export function MarketTicker() {
     return () => clearInterval(interval);
   }, []);
 
-  if (isLoading && quotes.length === 0) {
-    return (
-      <div className="absolute bottom-0 left-0 right-0 border-t border-white/10 bg-black/40 backdrop-blur-sm py-2 overflow-hidden">
-        <div className="text-xs text-white/60 px-6">Loading market data...</div>
-      </div>
-    );
-  }
-
-  if (error && quotes.length === 0) {
+  if ((isLoading || error || quotes.length === 0) && quotes.length === 0) {
     return null;
   }
 
@@ -59,7 +53,7 @@ export function MarketTicker() {
             return (
               <div key={`${quote.symbol}-${index}`} className="flex items-center gap-2 md:gap-3">
                 <span className="text-xs md:text-sm font-sans font-medium tracking-tight text-white">
-                  {quote.symbol}
+                  {quote.name ?? quote.symbol}
                 </span>
                 {quote.price !== null && (
                   <span className="text-xs md:text-sm font-sans text-white/90 tabular-nums">

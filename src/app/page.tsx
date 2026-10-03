@@ -41,10 +41,10 @@ export default function Home() {
             className="absolute inset-0 bg-cover bg-center bg-no-repeat"
             style={{
               backgroundImage:
-                "linear-gradient(to bottom, rgba(0, 0, 0, 0.45) 0%, rgba(0, 0, 0, 0.25) 50%, rgba(0, 0, 0, 0.55) 100%), url('https://images.unsplash.com/photo-1505761671935-60b3a7427bad?q=80&w=1920&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D')",
+                "linear-gradient(to right, rgba(0, 0, 0, 0.62) 0%, rgba(0, 0, 0, 0.34) 42%, rgba(0, 0, 0, 0.08) 100%), url('https://images.unsplash.com/photo-1518005020951-eccb494ad742?q=80&w=1920&auto=format&fit=crop')",
             }}
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-black/40" />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/55 via-transparent to-black/20" />
 
           <div className="relative z-10 mx-auto max-w-7xl px-6 md:px-8 lg:px-10 w-full flex flex-col justify-center h-full pt-20">
             <motion.div
@@ -76,7 +76,7 @@ export default function Home() {
                 <Button href="/fund" variant="primary" className="!bg-white !text-ink !border-white hover:!bg-white/90">
                   Explore the Fund →
                 </Button>
-                <Button href="/research" variant="secondary" className="bg-white/10 text-white border-white/30 backdrop-blur-sm hover:bg-white/20 hover:border-white/50">
+                <Button href="/research" variant="secondary" className="!bg-white/10 !text-white !border-white/30 backdrop-blur-sm hover:!bg-white/20 hover:!border-white/50">
                   Read Research
                 </Button>
               </motion.div>
@@ -181,10 +181,10 @@ export default function Home() {
             className="absolute inset-0 bg-cover bg-center bg-no-repeat"
             style={{
               backgroundImage:
-                "linear-gradient(to bottom, rgba(0, 0, 0, 0.4) 0%, rgba(0, 0, 0, 0.6) 100%), url('https://images.unsplash.com/photo-1519681393784-d120267933ba?q=80&w=1920&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D')",
+                "linear-gradient(to bottom, rgba(0, 0, 0, 0.28) 0%, rgba(0, 0, 0, 0.56) 100%), url('https://images.unsplash.com/photo-1497366754035-f200968a6e72?q=80&w=1920&auto=format&fit=crop')",
             }}
           />
-          <div className="absolute inset-0 bg-black/40" />
+          <div className="absolute inset-0 bg-black/25" />
           <div className="relative z-10 mx-auto max-w-7xl px-6 md:px-8 lg:px-10 text-center">
             <motion.h2
               initial={{ opacity: 0, y: 40 }}
