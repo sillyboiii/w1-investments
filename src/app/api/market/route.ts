@@ -8,7 +8,7 @@ let cache: { quotes: TickerItem[]; timestamp: number } | null = null;
 function toNumber(value: unknown): number | null {
   if (typeof value === "number" && Number.isFinite(value)) return value;
   if (typeof value === "string") {
-    const parsed = Number(value.replace(/,/g, ""));
+    const parsed = Number(value.replace(/[$,%+,]/g, ""));
     return Number.isFinite(parsed) ? parsed : null;
   }
   return null;
@@ -69,6 +69,58 @@ async function fetchYahooQuotes() {
     });
 }
 
+async function fetchNasdaqQuote(symbol: string): Promise<TickerItem | null> {
+  const assetclass = symbol === "NDX" || symbol === "COMP" ? "index" : "stocks";
+  const response = await fetch(
+    `https://api.nasdaq.com/api/quote/${encodeURIComponent(symbol)}/info?assetclass=${assetclass}`,
+    {
+      headers: {
+        accept: "application/json, text/plain, */*",
+        "user-agent": "Mozilla/5.0 W1 Investments market display",
+      },
+      next: { revalidate: 60 },
+    },
+  );
+
+  if (!response.ok) return null;
+  const payload = await response.json();
+  const primary = payload?.data?.primaryData;
+  if (!primary) return null;
+
+  return normalizeQuote(symbol, {
+    price: primary.lastSalePrice,
+    change: primary.netChange,
+    changePercent: primary.percentageChange,
+  });
+}
+
+async function fetchNasdaqQuotes() {
+  const symbols = [
+    "NDX",
+    "COMP",
+    "AAPL",
+    "MSFT",
+    "NVDA",
+    "AMZN",
+    "GOOGL",
+    "META",
+    "TSLA",
+    "V",
+    "MA",
+    "SHEL",
+    "BP",
+    "AZN",
+    "RIO",
+    "NG",
+    "CRH",
+  ];
+
+  const quotes = await Promise.all(symbols.map((symbol) => fetchNasdaqQuote(symbol)));
+  return quotes.filter((quote): quote is TickerItem => {
+    return Boolean(quote && quote.price !== null && quote.changePercent !== null);
+  });
+}
+
 export async function GET() {
   const now = Date.now();
   if (cache && now - cache.timestamp < 60_000) {
@@ -80,7 +132,7 @@ export async function GET() {
 
   try {
     if (!apiKey || !baseUrl) {
-      const quotes = await fetchYahooQuotes();
+      const quotes = await fetchNasdaqQuotes();
       cache = { quotes, timestamp: now };
       return NextResponse.json({ quotes, delayed: true });
     }
