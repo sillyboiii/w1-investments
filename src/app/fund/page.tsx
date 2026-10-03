@@ -1,7 +1,6 @@
 "use client";
 
 import { motion } from "framer-motion";
-import Image from "next/image";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { SlashDivider } from "@/components/ui/SlashDivider";
@@ -12,6 +11,93 @@ const researchFramework = [
   { title: "Quantitative Research", question: "What does the data tell us?" },
   { title: "Portfolio Risk", question: "Where is our risk actually coming from?" },
   { title: "Investment Committee", question: "Given all of the evidence, what do we do?" },
+];
+
+const processSteps = [
+  {
+    step: "01",
+    title: "Idea Generation",
+    subtitle: "Finding potential opportunities",
+    description:
+      "Investment ideas can originate from Fundamental, Macro or Quant research. We look for potential mispricing, structural trends, changing industry dynamics or data-driven opportunities worth investigating further.",
+  },
+  {
+    step: "02",
+    title: "Preliminary Research",
+    subtitle: "Is there something worth investigating?",
+    description:
+      "The analyst conducts an initial review of the company, industry, financials, valuation and potential catalysts. Weak ideas are filtered out before significant research time is committed.",
+  },
+  {
+    step: "03",
+    title: "Deep-Dive Research",
+    subtitle: "Understanding the investment",
+    description:
+      "The analyst studies the business model, competitive position, industry structure, management, financial performance, catalysts and key risks to understand what actually drives the investment.",
+  },
+  {
+    step: "04",
+    title: "Modelling & Valuation",
+    subtitle: "Turning research into numbers",
+    description:
+      "Historical financials and forecasts are used to build scenarios and estimate potential value. Appropriate valuation methods are used to understand what assumptions the current market price may reflect.",
+  },
+  {
+    step: "05",
+    title: "Investment Thesis",
+    subtitle: "Defining why the opportunity exists",
+    description:
+      "Research is condensed into a clear thesis explaining what the market may be overlooking, why W1's view differs, what could unlock value, the expected time horizon and what could prove the thesis wrong.",
+  },
+  {
+    step: "06",
+    title: "Macro & Quant Review",
+    subtitle: "Challenging the thesis",
+    description:
+      "Macro examines the economic and market environment surrounding the idea. Quant tests relevant assumptions using data and evaluates factors such as volatility, correlations and portfolio exposure.",
+  },
+  {
+    step: "07",
+    title: "Investment Memorandum",
+    subtitle: "Building the complete case",
+    description:
+      "The analyst brings the research, model, valuation, thesis, catalysts, risks and supporting evidence together into a structured investment memorandum for review.",
+  },
+  {
+    step: "08",
+    title: "Investment Committee",
+    subtitle: "Defend the idea",
+    description:
+      "The analyst presents the opportunity to the Investment Committee and faces questions and counterarguments. The committee can Approve, Revise or Reject the proposal.",
+  },
+  {
+    step: "09",
+    title: "Portfolio Construction",
+    subtitle: "From conviction to position size",
+    description:
+      "Approved investments are assessed within the context of the entire portfolio. Conviction, downside risk, concentration, correlations and existing exposures help determine an appropriate position size.",
+  },
+  {
+    step: "10",
+    title: "Continuous Monitoring",
+    subtitle: "The research doesn't stop after investment",
+    description:
+      "The coverage analyst continues tracking the company, financial results, valuation, catalysts and thesis assumptions. Material developments can trigger another Investment Committee review.",
+  },
+  {
+    step: "11",
+    title: "Add / Hold / Trim / Exit",
+    subtitle: "Responding as the evidence changes",
+    description:
+      "Positions are adjusted when expected returns, risk, valuation or the underlying thesis changes. Decisions should follow evidence rather than attachment to the original idea.",
+  },
+  {
+    step: "12",
+    title: "Post-Investment Review",
+    subtitle: "Learning from the outcome",
+    description:
+      "After exiting a position, W1 reviews what happened versus the original thesis: what was understood correctly, what was missed and whether the investment process itself can be improved.",
+  },
 ];
 
 export default function FundPage() {
@@ -81,25 +167,44 @@ export default function FundPage() {
             <h2 className="text-2xl md:text-4xl font-serif tracking-tight mb-6">
               Investment Process
             </h2>
-            <p className="text-base md:text-lg text-muted max-w-3xl mb-10">
-              The investment process is iterative, with feedback loops between research, risk and committee decisions — designed to maintain discipline without unnecessary complexity.
+            <p className="text-base md:text-lg text-muted max-w-3xl mb-12">
+              The investment process is iterative, with feedback loops between research, risk and committee decisions.
             </p>
-            <motion.div
-              initial={{ opacity: 0, y: 40 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, margin: "-100px" }}
-              transition={{ duration: 1, ease: "easeOut" }}
-              className="flex justify-center w-full overflow-x-auto"
-            >
-              <Image
-                src="/process-diagram.png"
-                alt="W1 Investment Process Diagram"
-                width={1400}
-                height={900}
-                className="w-full h-auto max-w-6xl"
-                priority
-              />
-            </motion.div>
+            <div className="space-y-8 md:space-y-10">
+              {processSteps.map((step, index) => (
+                <motion.div
+                  key={step.step}
+                  initial={{ opacity: 0, y: 40 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true, margin: "-80px" }}
+                  transition={{
+                    duration: 0.9,
+                    delay: index * 0.05,
+                    ease: "easeOut",
+                  }}
+                  className="border border-border p-6 md:p-8 lg:p-10"
+                >
+                  <div className="flex flex-col md:flex-row md:items-start gap-6">
+                    <div className="shrink-0">
+                      <span className="text-sm md:text-base font-sans font-medium tracking-[0.2em] text-muted">
+                        {step.step}
+                      </span>
+                    </div>
+                    <div className="flex-1">
+                      <h3 className="text-xl md:text-2xl lg:text-3xl font-serif tracking-tight leading-[1.1] mb-2">
+                        {step.title}
+                      </h3>
+                      <p className="text-base md:text-lg font-serif tracking-tight text-muted mb-4">
+                        {step.subtitle}
+                      </p>
+                      <p className="text-sm md:text-base leading-relaxed text-muted max-w-4xl">
+                        {step.description}
+                      </p>
+                    </div>
+                  </div>
+                </motion.div>
+              ))}
+            </div>
           </div>
         </section>
       </main>

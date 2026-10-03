@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { usePathname } from "next/navigation";
-import { LogoImage } from "@/components/ui/LogoImage";
+import { LogoImageAlt } from "@/components/ui/LogoImageAlt";
 
 const navLinks = [
   { href: "/fund", label: "Fund" },
@@ -49,7 +49,7 @@ export function Navbar() {
         }`}
       >
         <nav className="mx-auto max-w-7xl px-6 md:px-8 lg:px-10 py-3 md:py-4 flex items-center justify-between">
-          <LogoImage href="/" size="md" className="group" />
+          <LogoImageAlt href="/" size="md" className="group" />
 
           <div className="hidden lg:flex items-center gap-8 xl:gap-10">
             {navLinks.map((link) => {

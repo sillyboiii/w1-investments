@@ -36,7 +36,7 @@ export default function Home() {
     <div className="flex min-h-full flex-col">
       <Navbar />
       <main className="flex-1">
-        <section className="relative min-h-[90vh] md:min-h-[95vh] flex items-center justify-center pt-20">
+        <section className="relative min-h-[92vh] md:min-h-[96vh] flex items-center justify-center pt-16 md:pt-20">
           <div className="mx-auto max-w-7xl px-6 md:px-8 lg:px-10 w-full">
             <motion.div
               variants={containerVariants}
@@ -44,14 +44,14 @@ export default function Home() {
               animate="visible"
               className="flex flex-col items-start md:items-center md:text-center"
             >
-              <motion.div variants={itemVariants} className="mb-8 md:mb-10 flex justify-center w-full">
+              <motion.div variants={itemVariants} className="mb-8 md:mb-12 flex justify-start md:justify-center w-full">
                 <W1Mark size="2xl" />
               </motion.div>
 
               <motion.div variants={itemVariants} className="mb-6 md:mb-8">
                 <AnimatedText
                   text="Building the next generation of investors."
-                  className="text-xl md:text-3xl lg:text-4xl xl:text-5xl font-serif leading-[1.05] tracking-tight max-w-4xl"
+                  className="text-2xl md:text-4xl lg:text-5xl xl:text-6xl font-serif leading-[1.08] tracking-tight max-w-5xl"
                   splitBy="words"
                   delay={0.3}
                 />
@@ -59,7 +59,7 @@ export default function Home() {
 
               <motion.p
                 variants={itemVariants}
-                className="text-base md:text-lg text-muted max-w-2xl leading-relaxed mb-8 md:mb-10"
+                className="text-base md:text-lg text-muted max-w-2xl leading-relaxed mb-8 md:mb-10 md:mx-auto"
               >
                 W1 combines investment research, practical experience and education to give students exposure to how investment decisions are actually made.
               </motion.p>
@@ -92,9 +92,11 @@ export default function Home() {
               transition={{ duration: 1, ease: "easeOut" }}
               className="mb-12 md:mb-16"
             >
-              <h2 className="text-2xl md:text-4xl lg:text-5xl font-serif tracking-tight leading-[1.05] max-w-4xl">
-                An interconnected ecosystem built around investment research and education
-              </h2>
+              <div className="border-t border-border pt-10">
+                <h2 className="text-2xl md:text-4xl lg:text-5xl font-serif tracking-tight leading-[1.05] max-w-4xl">
+                  An interconnected ecosystem built around investment research and education
+                </h2>
+              </div>
             </motion.div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-10">
@@ -131,13 +133,13 @@ export default function Home() {
                     delay: index * 0.1,
                     ease: "easeOut",
                   }}
-                  className="group border border-border bg-background p-8 md:p-10 flex flex-col h-full relative transition-all duration-500 hover:border-ink/30"
+                  className="group border border-border bg-background p-8 md:p-10 flex flex-col h-full relative transition-all duration-500 hover:border-ink/40 hover:shadow-sm/5"
                 >
                   <div className="mb-6">
-                    <h3 className="text-xs font-sans font-medium tracking-[0.2em] uppercase text-muted mb-3">
+                    <h3 className="text-xs font-sans font-medium tracking-[0.25em] uppercase text-muted mb-4">
                       {pillar.title}
                     </h3>
-                    <h4 className="text-xl md:text-2xl font-serif tracking-tight mb-4">
+                    <h4 className="text-xl md:text-2xl font-serif tracking-tight leading-[1.15] mb-4">
                       {pillar.subtitle}
                     </h4>
                     <p className="text-muted leading-relaxed">{pillar.description}</p>
