@@ -10,7 +10,6 @@ const navLinks = [
   { href: "/fund", label: "Fund" },
   { href: "/portfolio", label: "Portfolio" },
   { href: "/research", label: "Research" },
-  { href: "/academy", label: "Academy" },
   { href: "/team", label: "Team" },
   { href: "/about", label: "About" },
 ];
@@ -49,7 +48,7 @@ export function Navbar() {
         }`}
       >
         <nav className="mx-auto max-w-7xl px-6 md:px-8 lg:px-10 py-3 md:py-4 flex items-center justify-between">
-          <LogoImageAlt href="/" size="md" className="group" />
+          <LogoImageAlt href="/" size="lg" className="group" />
 
           <div className="hidden lg:flex items-center gap-8 xl:gap-10">
             {navLinks.map((link) => {

@@ -59,3 +59,26 @@ h6 {
 hr {
   border-color: var(--border);
 }
+
+@keyframes scroll-slow {
+  0% {
+    transform: translateX(0%);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+.animate-scroll-slow {
+  animation-name: scroll-slow;
+}
+
+.group:hover .group-hover\:pause-motion {
+  animation-play-state: paused;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .motion-reduce\:animate-none {
+    animation: none !important;
+  }
+}

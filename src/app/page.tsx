@@ -6,7 +6,7 @@ import { SlashDivider } from "@/components/ui/SlashDivider";
 import { Button } from "@/components/ui/Button";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
-import { W1Mark } from "@/components/ui/W1Mark";
+import { MarketTicker } from "@/components/ui/MarketTicker";
 
 export default function Home() {
   const containerVariants: Variants = {
@@ -36,22 +36,27 @@ export default function Home() {
     <div className="flex min-h-full flex-col">
       <Navbar />
       <main className="flex-1">
-        <section className="relative min-h-[92vh] md:min-h-[96vh] flex items-center justify-center pt-16 md:pt-20">
-          <div className="mx-auto max-w-7xl px-6 md:px-8 lg:px-10 w-full">
+        <section className="relative h-screen flex items-center justify-center overflow-hidden bg-black">
+          <div
+            className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+            style={{
+              backgroundImage:
+                "linear-gradient(to bottom, rgba(0, 0, 0, 0.45) 0%, rgba(0, 0, 0, 0.25) 50%, rgba(0, 0, 0, 0.55) 100%), url('https://images.unsplash.com/photo-1505761671935-60b3a7427bad?q=80&w=1920&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D')",
+            }}
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-black/40" />
+
+          <div className="relative z-10 mx-auto max-w-7xl px-6 md:px-8 lg:px-10 w-full flex flex-col justify-center h-full pt-20">
             <motion.div
               variants={containerVariants}
               initial="hidden"
               animate="visible"
-              className="flex flex-col items-start md:items-center md:text-center"
+              className="flex flex-col items-start"
             >
-              <motion.div variants={itemVariants} className="mb-8 md:mb-12 flex justify-start md:justify-center w-full">
-                <W1Mark size="2xl" />
-              </motion.div>
-
               <motion.div variants={itemVariants} className="mb-6 md:mb-8">
                 <AnimatedText
-                  text="Building the next generation of investors."
-                  className="text-2xl md:text-4xl lg:text-5xl xl:text-6xl font-serif leading-[1.08] tracking-tight max-w-5xl"
+                  text="Investing through research."
+                  className="text-3xl md:text-5xl lg:text-6xl xl:text-7xl font-serif leading-[1.08] tracking-tight max-w-6xl text-white"
                   splitBy="words"
                   delay={0.3}
                 />
@@ -59,31 +64,29 @@ export default function Home() {
 
               <motion.p
                 variants={itemVariants}
-                className="text-base md:text-lg text-muted max-w-2xl leading-relaxed mb-8 md:mb-10 md:mx-auto"
+                className="text-base md:text-lg text-white/80 max-w-2xl leading-relaxed mb-8 md:mb-10"
               >
-                W1 combines investment research, practical experience and education to give students exposure to how investment decisions are actually made.
+                W1 is a student-led investment fund researching global markets, developing investment theses and managing a model portfolio.
               </motion.p>
 
               <motion.div
                 variants={itemVariants}
-                className="flex flex-col sm:flex-row items-start md:items-center md:justify-center gap-4 sm:gap-6"
+                className="flex flex-col sm:flex-row items-start gap-4 sm:gap-6"
               >
-                <Button href="/about" variant="primary">
-                  Explore W1
+                <Button href="/fund" variant="primary" className="bg-white text-ink border-white hover:bg-white/90">
+                  Explore the Fund →
                 </Button>
-                <Button href="/research" variant="secondary">
+                <Button href="/research" variant="secondary" className="bg-white/10 text-white border-white/30 backdrop-blur-sm hover:bg-white/20 hover:border-white/50">
                   Read Research
                 </Button>
               </motion.div>
-
-              <motion.div variants={itemVariants} className="mt-12 md:mt-16 w-full">
-                <SlashDivider delay={0.8} />
-              </motion.div>
             </motion.div>
           </div>
+
+          <MarketTicker />
         </section>
 
-        <section className="py-16 md:py-24">
+        <section className="bg-background py-16 md:py-24">
           <div className="mx-auto max-w-7xl px-6 md:px-8 lg:px-10">
             <motion.div
               initial={{ opacity: 0, y: 40 }}
@@ -93,8 +96,11 @@ export default function Home() {
               className="mb-12 md:mb-16"
             >
               <div className="border-t border-border pt-10">
+                <p className="text-xs uppercase tracking-[0.25em] text-muted mb-4">
+                  01 / THE FUND
+                </p>
                 <h2 className="text-2xl md:text-4xl lg:text-5xl font-serif tracking-tight leading-[1.05] max-w-4xl">
-                  An interconnected ecosystem built around investment research and education
+                  Ideas are challenged before capital is allocated.
                 </h2>
               </div>
             </motion.div>
@@ -109,18 +115,18 @@ export default function Home() {
                   href: "/fund",
                 },
                 {
-                  title: "THE ACADEMY",
-                  subtitle: "Developing students into stronger investors and analysts",
+                  title: "RESEARCH",
+                  subtitle: "Fundamental, Macro, Quant",
                   description:
-                    "A structured development pathway that bridges theory with practice, building technical skills through real research work.",
-                  href: "/academy",
+                    "Generating and challenging investment ideas through multiple perspectives to strengthen conviction before allocation.",
+                  href: "/research",
                 },
                 {
-                  title: "THE PLATFORM",
-                  subtitle: "Publishing research, insights and educational content",
+                  title: "PORTFOLIO",
+                  subtitle: "Managed with discipline",
                   description:
-                    "A serious editorial platform for publishing rigorous research and actionable insights with institutional standards.",
-                  href: "/research",
+                    "A model portfolio built and monitored through a structured investment process with deliberate risk management.",
+                  href: "/portfolio",
                 },
               ].map((pillar, index) => (
                 <motion.div
@@ -167,6 +173,28 @@ export default function Home() {
                 </motion.div>
               ))}
             </div>
+          </div>
+        </section>
+
+        <section className="relative h-[60vh] md:h-[70vh] flex items-center justify-center overflow-hidden bg-black">
+          <div
+            className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+            style={{
+              backgroundImage:
+                "linear-gradient(to bottom, rgba(0, 0, 0, 0.4) 0%, rgba(0, 0, 0, 0.6) 100%), url('https://images.unsplash.com/photo-1519681393784-d120267933ba?q=80&w=1920&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D')",
+            }}
+          />
+          <div className="absolute inset-0 bg-black/40" />
+          <div className="relative z-10 mx-auto max-w-7xl px-6 md:px-8 lg:px-10 text-center">
+            <motion.h2
+              initial={{ opacity: 0, y: 40 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, margin: "-100px" }}
+              transition={{ duration: 1, ease: "easeOut" }}
+              className="text-2xl md:text-4xl lg:text-5xl font-serif tracking-tight leading-[1.05] text-white max-w-4xl mx-auto"
+            >
+              Rigorous research. Disciplined decisions. Evidence over assumption.
+            </motion.h2>
           </div>
         </section>
       </main>

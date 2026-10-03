@@ -4,7 +4,6 @@ import { LogoImageAlt } from "@/components/ui/LogoImageAlt";
 const footerLinks = [
   { href: "/research", label: "Research" },
   { href: "/fund", label: "Fund" },
-  { href: "/academy", label: "Academy" },
   { href: "/team", label: "Team" },
   { href: "/join", label: "Join" },
 ];
@@ -20,7 +19,7 @@ export function Footer() {
       <div className="mx-auto max-w-7xl px-6 md:px-8 lg:px-10 py-12 md:py-16">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-10 md:gap-8">
           <div className="md:col-span-2">
-            <LogoImageAlt size="md" className="mb-4" />
+            <LogoImageAlt size="lg" className="mb-4" />
             <p className="text-sm text-muted max-w-md leading-relaxed">
               London
             </p>
@@ -68,7 +67,7 @@ export function Footer() {
         <div className="mt-12 pt-8 border-t border-border">
           <div className="flex flex-col md:flex-row justify-between gap-6">
             <p className="text-xs text-muted leading-relaxed max-w-3xl">
-              W1 is a student-led educational investment organisation. Content published by W1 is for educational and research purposes only and does not constitute investment advice.
+              W1 is a student-led investment fund founded by students at the University of Westminster. Content published by W1 is for educational and research purposes only and does not constitute investment advice.
             </p>
             <p className="text-xs text-muted">
               © {new Date().getFullYear()} W1 Investments
