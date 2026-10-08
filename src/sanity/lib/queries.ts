@@ -1,0 +1,38 @@
+import { groq } from "next-sanity";
+
+export const researchListQuery = groq`
+  *[_type == "research" && defined(slug.current)] | order(publishedAt desc) {
+    _id,
+    title,
+    "slug": slug.current,
+    category,
+    analyst,
+    publishedAt,
+    abstract,
+    ticker,
+    coverImage,
+    "reportUrl": report.asset->url
+  }
+`;
+
+export const researchBySlugQuery = groq`
+  *[_type == "research" && slug.current == $slug][0] {
+    _id,
+    title,
+    "slug": slug.current,
+    category,
+    analyst,
+    publishedAt,
+    abstract,
+    ticker,
+    coverImage,
+    executiveSummary,
+    thesis,
+    catalysts,
+    risks,
+    valuation,
+    sources,
+    body,
+    "reportUrl": report.asset->url
+  }
+`;

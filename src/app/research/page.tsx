@@ -1,10 +1,10 @@
-"use client";
-
 import Link from "next/link";
-import { motion } from "framer-motion";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
-import { SlashDivider } from "@/components/ui/SlashDivider";
+import { sanityClient } from "@/sanity/lib/client";
+import { researchListQuery } from "@/sanity/lib/queries";
+import { isSanityConfigured } from "@/sanity/env";
+import { urlFor } from "@/sanity/lib/image";
 
 const categories = [
   "All",
@@ -15,20 +15,43 @@ const categories = [
   "Market Briefs",
 ];
 
-const researchItems = [] as const; // Placeholder structure
+interface ResearchItem {
+  _id: string;
+  title: string;
+  slug: string;
+  category?: string;
+  analyst?: string;
+  publishedAt?: string;
+  abstract?: string;
+  ticker?: string;
+  coverImage?: Parameters<typeof urlFor>[0];
+  reportUrl?: string;
+}
 
-export default function ResearchPage() {
+async function getResearch(): Promise<ResearchItem[]> {
+  if (!isSanityConfigured) return [];
+  return sanityClient.fetch(researchListQuery, {}, { next: { revalidate: 60 } });
+}
+
+function formatDate(date?: string) {
+  if (!date) return "Draft";
+  return new Intl.DateTimeFormat("en-GB", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+  }).format(new Date(date));
+}
+
+export default async function ResearchPage() {
+  const researchItems = await getResearch();
+
   return (
     <div className="flex min-h-full flex-col">
       <Navbar />
       <main className="flex-1 pt-24 md:pt-32">
         <section>
           <div className="mx-auto max-w-7xl px-6 md:px-8 lg:px-10">
-            <motion.div
-              initial={{ opacity: 0, y: 40 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 1, ease: [0.25, 0.1, 0.25, 1] }}
-            >
+            <div>
               <h1 className="text-3xl md:text-5xl lg:text-6xl font-serif tracking-tight leading-[1.05]">
                 RESEARCH
               </h1>
@@ -36,35 +59,78 @@ export default function ResearchPage() {
                 A publication-style research hub for rigorous, institutional-standard work.
               </p>
 
-              <SlashDivider delay={0.2} />
-
-              <div className="flex flex-wrap gap-3 md:gap-4">
+              <div className="mt-10 flex flex-wrap gap-3 md:gap-4">
                 {categories.map((category) => (
-                  <button
+                  <span
                     key={category}
-                    className="text-sm px-3 py-1.5 border border-border hover:border-ink transition-colors"
+                    className="text-sm px-3 py-1.5 border border-border text-muted"
                   >
                     {category}
-                  </button>
+                  </span>
                 ))}
               </div>
-            </motion.div>
+            </div>
           </div>
         </section>
 
-        <section className="py-16 md:py-24">
+        <section className="py-14 md:py-20">
           <div className="mx-auto max-w-7xl px-6 md:px-8 lg:px-10">
-            <div className="border border-border p-8 md:p-12 text-center">
-              <p className="text-sm uppercase tracking-widest text-muted mb-4">
-                Research Library
-              </p>
-              <h3 className="text-xl md:text-2xl font-serif tracking-tight mb-4">
-                Content structure ready for publication
-              </h3>
-              <p className="text-muted max-w-2xl mx-auto">
-                Research cards and article templates support title, category, analyst, date, abstract, company/ticker, executive summary, charts, tables, thesis, catalysts, risks, valuation and sources. PDF downloads can be added later.
-              </p>
-            </div>
+            {researchItems.length > 0 ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                {researchItems.map((item) => (
+                  <article key={item._id} className="border-t border-border pt-6">
+                    {item.coverImage && (
+                      <div
+                        className="mb-6 aspect-[4/3] bg-cover bg-center grayscale-[10%] saturate-[0.85]"
+                        style={{
+                          backgroundImage: `url('${urlFor(item.coverImage).width(900).height(675).fit("crop").url()}')`,
+                        }}
+                      />
+                    )}
+                    <div className="mb-4 flex flex-wrap items-center gap-3 text-xs uppercase tracking-[0.18em] text-muted">
+                      <span>{item.category ?? "Research"}</span>
+                      {item.ticker && <span>{item.ticker}</span>}
+                    </div>
+                    <h2 className="text-2xl md:text-3xl font-serif tracking-tight leading-[1.05]">
+                      <Link href={`/research/${item.slug}`} className="hover:opacity-70">
+                        {item.title}
+                      </Link>
+                    </h2>
+                    <p className="mt-4 text-sm text-muted">
+                      {item.analyst ? `${item.analyst} · ` : ""}{formatDate(item.publishedAt)}
+                    </p>
+                    {item.abstract && (
+                      <p className="mt-4 text-muted leading-relaxed">{item.abstract}</p>
+                    )}
+                    <div className="mt-6 flex items-center gap-5 text-sm">
+                      <Link href={`/research/${item.slug}`} className="border-b border-border pb-1 hover:border-ink">
+                        Read research
+                      </Link>
+                      {item.reportUrl && (
+                        <a href={item.reportUrl} className="border-b border-border pb-1 hover:border-ink">
+                          Download PDF
+                        </a>
+                      )}
+                    </div>
+                  </article>
+                ))}
+              </div>
+            ) : (
+              <div className="border-y border-border py-10 md:py-14">
+                <p className="text-sm uppercase tracking-widest text-muted mb-4">
+                  Research Library
+                </p>
+                <h2 className="text-xl md:text-2xl font-serif tracking-tight mb-4">
+                  Ready for publication
+                </h2>
+                <p className="text-muted max-w-2xl">
+                  Once Sanity is connected, published research will appear here automatically. Upload reports, cover graphics and PDFs through the W1 Studio.
+                </p>
+                <Link href="/studio" className="mt-6 inline-block border-b border-border pb-1 text-sm hover:border-ink">
+                  Open Studio
+                </Link>
+              </div>
+            )}
           </div>
         </section>
       </main>
