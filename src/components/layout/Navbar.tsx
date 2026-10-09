@@ -82,14 +82,14 @@ export function Navbar() {
               );
             })}
             <Link
-              href="/join"
+              href="https://www.linkedin.com/company/w1-investments" target="_blank" rel="noopener noreferrer"
               className={`group inline-flex items-center gap-1.5 text-sm font-medium tracking-tight border-b pb-1 transition-colors ml-2 ${
                 useLightNav
                   ? "text-white/85 border-white/30 hover:text-white hover:border-white"
                   : "border-border hover:border-ink hover:text-ink"
               }`}
             >
-              Join W1
+              LinkedIn
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 width="16"
@@ -148,11 +148,11 @@ export function Navbar() {
                 </Link>
               ))}
               <Link
-                href="/join"
+                href="https://www.linkedin.com/company/w1-investments" target="_blank" rel="noopener noreferrer"
                 onClick={() => setIsOpen(false)}
                 className="inline-flex items-center gap-2 text-3xl md:text-4xl font-serif tracking-tight py-2 mt-4"
               >
-                Join W1 →
+                LinkedIn →
               </Link>
             </motion.nav>
           </motion.div>
