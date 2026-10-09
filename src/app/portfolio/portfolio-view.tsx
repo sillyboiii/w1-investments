@@ -25,10 +25,11 @@ interface Totals {
 
 interface ApiData {
   ok: boolean;
-  positions: Position[];
-  totals: Totals;
-  settings: any;
-  updatedAt: string;
+  reason?: string;
+  positions?: Position[];
+  totals?: Totals;
+  settings?: any;
+  updatedAt?: string;
 }
 
 function fmt(n: number | null | undefined) {
@@ -72,6 +73,9 @@ export default function PortfolioView() {
     };
   }, []);
 
+  const positions = data?.positions || [];
+  const totals = data?.totals;
+
   return (
     <section className="py-10 md:py-14">
       <div className="mx-auto max-w-7xl px-6 md:px-8 lg:px-10">
@@ -80,28 +84,28 @@ export default function PortfolioView() {
         {data && !data.ok && data.reason === "sanity_not_configured" && (
           <p className="text-muted">Add positions in Studio (Portfolio Position + Portfolio Settings) to see the simulated portfolio.</p>
         )}
-        {data && data.ok && (
+        {data && data.ok && totals && (
           <>
             <div className="mb-8 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5">
               <div className="border border-border p-4">
                 <p className="text-xs uppercase tracking-widest text-muted">Total Value</p>
-                <p className="mt-1 text-xl font-serif">{fmt(data.totals.totalValue)}</p>
+                <p className="mt-1 text-xl font-serif">{fmt(totals.totalValue)}</p>
               </div>
               <div className="border border-border p-4">
                 <p className="text-xs uppercase tracking-widest text-muted">Market Value</p>
-                <p className="mt-1 text-xl font-serif">{fmt(data.totals.totalMarketValue)}</p>
+                <p className="mt-1 text-xl font-serif">{fmt(totals.totalMarketValue)}</p>
               </div>
               <div className="border border-border p-4">
                 <p className="text-xs uppercase tracking-widest text-muted">Cash</p>
-                <p className="mt-1 text-xl font-serif">{fmt(data.totals.cash)}</p>
+                <p className="mt-1 text-xl font-serif">{fmt(totals.cash)}</p>
               </div>
               <div className="border border-border p-4">
                 <p className="text-xs uppercase tracking-widest text-muted">Starting Balance</p>
-                <p className="mt-1 text-xl font-serif">{fmt(data.totals.startingBalance)}</p>
+                <p className="mt-1 text-xl font-serif">{fmt(totals.startingBalance)}</p>
               </div>
               <div className="border border-border p-4">
                 <p className="text-xs uppercase tracking-widest text-muted">Total Return</p>
-                <p className="mt-1 text-xl font-serif">{pct(data.totals.totalReturn)}</p>
+                <p className="mt-1 text-xl font-serif">{pct(totals.totalReturn)}</p>
               </div>
             </div>
 
@@ -119,12 +123,12 @@ export default function PortfolioView() {
                   </tr>
                 </thead>
                 <tbody>
-                  {data.positions.length === 0 && (
+                  {positions.length === 0 && (
                     <tr>
                       <td colSpan={7} className="py-6 text-muted">No active positions.</td>
                     </tr>
                   )}
-                  {data.positions.map((p) => (
+                  {positions.map((p) => (
                     <tr key={p._id} className="border-b border-border/40">
                       <td className="py-2 pr-4 font-medium">{p.ticker}</td>
                       <td className="py-2 pr-4">{p.shares.toLocaleString()}</td>
