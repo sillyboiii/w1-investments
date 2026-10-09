@@ -116,19 +116,8 @@ export default async function ResearchPage() {
                 ))}
               </div>
             ) : (
-              <div className="border-y border-border py-10 md:py-14">
-                <p className="text-sm uppercase tracking-widest text-muted mb-4">
-                  Research Library
-                </p>
-                <h2 className="text-xl md:text-2xl font-serif tracking-tight mb-4">
-                  Ready for publication
-                </h2>
-                <p className="text-muted max-w-2xl">
-                  Once Sanity is connected, published research will appear here automatically. Upload reports, cover graphics and PDFs through the W1 Studio.
-                </p>
-                <Link href="/studio" className="mt-6 inline-block border-b border-border pb-1 text-sm hover:border-ink">
-                  Open Studio
-                </Link>
+              <div className="py-10 md:py-14 text-muted">
+                <p>No published research yet.</p>
               </div>
             )}
           </div>
