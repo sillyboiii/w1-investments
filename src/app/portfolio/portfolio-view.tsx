@@ -85,19 +85,14 @@ export default function PortfolioView() {
 
   if (loading) return <p className="text-muted">Loading portfolio...</p>;
   if (error) return <p className="text-muted">{error}</p>;
-  if (!data) return null;
-  if (!data.ok && data.reason === "sanity_not_configured") {
-    return <p className="text-muted">Add Sanity environment variables to enable portfolio data.</p>;
-  }
-  if (!data.ok) return <p className="text-muted">Failed to load portfolio.</p>;
-
+  if (!data) return <p className="text-muted">No data.</p>;
+  if (!data.ok) return <p className="text-muted">Failed to load.</p>;
   const positions = data.positions || [];
   const totals = data.totals;
-
-  if (!totals) return <p className="text-muted">No totals available.</p>;
+  if (!totals) return <p className="text-muted">No totals.</p>;
 
   return (
-    <>
+    <div>
       {positions.length === 0 && !data.settings && (
         <p className="mb-6 text-muted">
           No portfolio data. Add <Link href="/studio" className="underline">Portfolio Settings</Link> and <Link href="/studio" className="underline">Portfolio Positions</Link> in Studio to get started.
@@ -160,6 +155,6 @@ export default function PortfolioView() {
         </table>
       </div>
       <p className="mt-4 text-xs text-muted">Prices update ~every 60s. Data managed in Studio.</p>
-    </>
+    </div>
   );
 }
