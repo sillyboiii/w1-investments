@@ -1,125 +1,109 @@
-"use client";
-
-import { motion } from "framer-motion";
 import Link from "next/link";
-import { useState } from "react";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
-import { Button } from "@/components/ui/Button";
+import { sanityClient } from "@/sanity/lib/client";
+import { teamMembersQuery } from "@/sanity/lib/queries";
+import { isSanityConfigured } from "@/sanity/env";
+import { urlFor } from "@/sanity/lib/image";
 
-const leadership = [
-  {
-    label: "Founder / President",
-    name: "Adam",
-    role: "Founder & President",
-    status: "filled",
-  },
-  {
-    label: "Vice President",
-    role: "Vice President",
-    status: "open",
-  },
-  {
-    label: "CIO / Head of Investments",
-    role: "CIO / Head of Investments",
-    status: "open",
-  },
-];
+interface TeamMember {
+  _id: string;
+  name?: string;
+  role?: string;
+  group?: string;
+  subGroup?: string;
+  status?: "filled" | "open";
+  order?: number;
+  linkedin?: string;
+  photo?: any;
+  bio?: string;
+}
 
-const researchFunctions = [
-  {
-    name: "Fundamental Research",
-    lead: "Head of Fundamental Research",
-    roles: ["Sector Heads", "Equity Analysts", "Analyst Trainees"],
-  },
-  {
-    name: "Macro Research",
-    lead: "Head of Macro",
-    roles: ["Macro Analysts", "Analyst Trainees"],
-  },
-  {
-    name: "Quantitative Research + Portfolio Risk",
-    lead: "Head of Quant",
-    roles: ["Quantitative Research", "Portfolio Risk", "Quantitative Analyst Trainees"],
-  },
-  {
-    name: "Digital Assets Research",
-    lead: "Head of Digital Assets",
-    roles: ["Digital Asset Analysts", "Analyst Trainees"],
-  },
-];
+async function getTeamMembers(): Promise<TeamMember[]> {
+  if (!isSanityConfigured) return [];
+  return sanityClient.fetch(teamMembersQuery, {}, { next: { revalidate: 60 } });
+}
 
-const platformRoles = [
-  "Head of Operations / Platform",
-  "Operations",
-  "Brand & Creative",
-  "Media / Social",
-  "Research Publishing",
-  "Partnerships & Events",
-];
-
-function OpenPosition({ title, compact = false }: { title: string; compact?: boolean }) {
+function LinkedInIcon() {
   return (
-    <Link
-      href="/join"
-      className={`block border-t border-border text-sm text-muted transition-colors hover:text-ink ${compact ? "pt-2" : "pt-3"}`}
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      width="18"
+      height="18"
+      viewBox="0 0 24 24"
+      fill="currentColor"
+      aria-hidden="true"
     >
-      <span className="block text-xs uppercase tracking-[0.2em] text-muted">Open position</span>
-      <span className="mt-1 block font-medium text-foreground">{title}</span>
-      {!compact && (
-        <span className="mt-2 block text-xs leading-relaxed text-muted">
-          Profile, LinkedIn, research interests and selected W1 work will be added once filled.
-        </span>
-      )}
-    </Link>
+      <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z" />
+    </svg>
   );
 }
 
-function LeadershipNode({ item }: { item: (typeof leadership)[number] }) {
-  const isOpen = item.status === "open";
-
+function FilledMemberCard({ member }: { member: TeamMember }) {
+  const hasPhoto = member.photo;
   return (
-    <div className="mx-auto w-full max-w-sm border-y border-border bg-background py-5 text-center">
-      <p className="text-xs uppercase tracking-[0.22em] text-muted">{item.label}</p>
-      <h3 className="mt-3 text-2xl font-serif tracking-tight text-ink">{isOpen ? "Open position" : item.name}</h3>
-      <p className="mt-2 text-sm text-muted">{item.role}</p>
-      {isOpen ? (
-        <>
-          <p className="mx-auto mt-3 max-w-xs text-xs leading-relaxed text-muted">
-            Profile, LinkedIn, course, research interests and selected W1 work will be added once appointed.
-          </p>
-          <Link href="/join" className="mt-3 inline-block border-b border-border pb-1 text-xs text-muted hover:border-ink hover:text-ink">
-            Recruit for this role
-          </Link>
-        </>
-      ) : (
-        <p className="mx-auto mt-3 max-w-xs text-xs leading-relaxed text-muted">
-          Profile details, LinkedIn and selected W1 research will be added once available.
-        </p>
-      )}
+    <div className="border-y border-border py-5">
+      <div className="flex flex-col items-center text-center">
+        {hasPhoto && (
+          <div
+            className="mb-4 h-24 w-24 rounded-full bg-cover bg-center grayscale-[5%] saturate-[0.9] ring-1 ring-border"
+            style={{
+              backgroundImage: `url('${urlFor(member.photo).width(192).height(192).fit("crop").url()}')`,
+            }}
+          />
+        )}
+        <p className="text-xs uppercase tracking-[0.22em] text-muted">{member.role || member.subGroup || "Team"}</p>
+        <h3 className="mt-2 text-xl font-serif tracking-tight text-ink">{member.name}</h3>
+        {member.bio && (
+          <p className="mx-auto mt-2 max-w-xs text-xs leading-relaxed text-muted">{member.bio}</p>
+        )}
+        {member.linkedin && (
+          <a
+            href={member.linkedin}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="mt-3 inline-flex items-center gap-1.5 border-b border-border pb-1 text-xs text-muted hover:border-ink hover:text-ink"
+          >
+            <LinkedInIcon />
+            LinkedIn
+          </a>
+        )}
+      </div>
     </div>
   );
 }
 
-function Connector() {
-  return <div className="mx-auto h-10 w-px bg-border" />;
+function OpenMemberCard({ member }: { member: TeamMember }) {
+  return (
+    <div className="border-y border-border py-5">
+      <div className="flex flex-col items-center text-center">
+        <p className="text-xs uppercase tracking-[0.22em] text-muted">{member.role || "Open position"}</p>
+        <h3 className="mt-2 text-xl font-serif tracking-tight text-ink">Open position</h3>
+        <p className="mx-auto mt-2 max-w-xs text-xs leading-relaxed text-muted">
+          Profile, LinkedIn, course, research interests and selected W1 work will be added once appointed.
+        </p>
+        <Link href="/join" className="mt-3 inline-block border-b border-border pb-1 text-xs text-muted hover:border-ink hover:text-ink">
+          Recruit for this role
+        </Link>
+      </div>
+    </div>
+  );
 }
 
-export default function TeamPage() {
-  const [isOrgChartOpen, setIsOrgChartOpen] = useState(false);
+export default async function TeamPage() {
+  const members = await getTeamMembers();
+
+  const leadership = members.filter((m) => m.group === "leadership").sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
+  const research = members.filter((m) => m.group === "research").sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
+  const platform = members.filter((m) => m.group === "platform").sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
 
   return (
     <div className="flex min-h-full flex-col">
       <Navbar />
-      <main className="flex-1 bg-background">
-        <section className="pt-24 pb-8 md:pt-32 md:pb-14">
-          <div className="mx-auto max-w-7xl px-5 md:px-8 lg:px-10">
-            <motion.div
-              initial={{ opacity: 0, y: 32 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.9, ease: "easeOut" }}
-              className="max-w-4xl"
-            >
+      <main className="flex-1 pt-24 md:pt-32">
+        <section className="pb-10 md:pb-16">
+          <div className="mx-auto max-w-7xl px-6 md:px-8 lg:px-10">
+            <div className="max-w-4xl">
               <p className="mb-5 text-xs uppercase tracking-[0.25em] text-muted">Team</p>
               <h1 className="text-4xl md:text-6xl lg:text-7xl font-serif tracking-tight leading-[1.02] md:leading-[0.98] text-ink">
                 The people behind W1.
@@ -127,183 +111,56 @@ export default function TeamPage() {
               <p className="mt-5 md:mt-7 max-w-2xl text-base md:text-lg text-muted leading-relaxed">
                 W1 brings together students across investment research, portfolio management and operations within one investment process.
               </p>
-            </motion.div>
-          </div>
-        </section>
-
-        <section className="pb-12 md:pb-24">
-          <div className="mx-auto max-w-[92rem] px-5 md:px-8 lg:px-10">
-            <div className="hidden lg:block border-y border-border py-10">
-              <div className="mx-auto max-w-5xl">
-                {leadership.map((item, index) => (
-                  <div key={item.label}>
-                    <LeadershipNode item={item} />
-                    {index < leadership.length - 1 && <Connector />}
-                  </div>
-                ))}
-              </div>
-
-              <Connector />
-              <div className="mx-auto h-px max-w-6xl bg-border" />
-              <div className="grid grid-cols-5 gap-6 pt-8">
-                {researchFunctions.map((group) => (
-                  <div key={group.name} className="border-t border-border pt-5">
-                    <p className="min-h-12 text-xs uppercase tracking-[0.2em] text-muted">{group.name}</p>
-                    <OpenPosition title={group.lead} compact />
-                    <div className="mt-5 space-y-2 text-sm text-muted">
-                      {group.roles.map((role) => (
-                        <OpenPosition key={role} title={role} compact />
-                      ))}
-                    </div>
-                  </div>
-                ))}
-                <div className="border-t border-border pt-5">
-                  <p className="min-h-12 text-xs uppercase tracking-[0.2em] text-muted">Platform / Operations</p>
-                  <OpenPosition title={platformRoles[0]} compact />
-                  <div className="mt-5 space-y-2 text-sm text-muted">
-                    {platformRoles.slice(1).map((role) => (
-                      <OpenPosition key={role} title={role} compact />
-                    ))}
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div className="lg:hidden border-y border-border py-5">
-              <p className="text-xs uppercase tracking-[0.2em] text-muted">Organisational structure</p>
-              <h2 className="mt-3 text-2xl font-serif tracking-tight">View the full W1 chart.</h2>
-              <p className="mt-3 text-sm text-muted leading-relaxed">
-                Open the chart in a separate window so the hierarchy stays readable on mobile.
-              </p>
-              <button
-                type="button"
-                onClick={() => setIsOrgChartOpen(true)}
-                className="mt-5 inline-flex items-center border-b border-border pb-1 text-sm font-medium hover:border-ink"
-              >
-                Open organisation chart
-              </button>
             </div>
           </div>
         </section>
 
-        {isOrgChartOpen && (
-          <div className="fixed inset-0 z-[80] bg-ink/45 px-3 py-4 backdrop-blur-sm lg:hidden">
-            <div className="mx-auto flex max-h-full max-w-md flex-col overflow-hidden bg-background border border-border">
-              <div className="flex items-center justify-between border-b border-border px-4 py-3">
-                <div>
-                  <p className="text-xs uppercase tracking-[0.2em] text-muted">W1 structure</p>
-                  <h2 className="text-xl font-serif tracking-tight">Organisation chart</h2>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => setIsOrgChartOpen(false)}
-                  className="border-b border-border pb-1 text-sm text-muted hover:border-ink hover:text-ink"
-                >
-                  Close
-                </button>
-              </div>
-
-              <div className="overflow-y-auto px-4 py-5">
-                <div className="space-y-4">
-                  <section>
-                    <p className="mb-4 text-xs uppercase tracking-[0.18em] text-muted">Leadership</p>
-                    <div className="space-y-4">
-                      {leadership.map((item) => <LeadershipNode key={item.label} item={item} />)}
-                    </div>
-                  </section>
-
-                  <section className="border-t border-border pt-5">
-                    <p className="mb-4 text-xs uppercase tracking-[0.18em] text-muted">Investment function</p>
-                    <div className="space-y-5">
-                      {researchFunctions.map((group) => (
-                        <details key={group.name} open className="border-t border-border pt-4">
-                          <summary className="cursor-pointer list-none font-serif text-xl tracking-tight leading-tight">
-                            {group.name}
-                          </summary>
-                          <div className="mt-4 space-y-2">
-                            <OpenPosition title={group.lead} />
-                            {group.roles.map((role) => <OpenPosition key={role} title={role} compact />)}
-                          </div>
-                        </details>
-                      ))}
-                    </div>
-                  </section>
-
-                  <section className="border-t border-border pt-5">
-                    <p className="mb-4 text-xs uppercase tracking-[0.18em] text-muted">Platform / Operations</p>
-                    <div className="space-y-2">
-                      {platformRoles.map((role, index) => (
-                        <OpenPosition key={role} title={role} compact={index !== 0} />
-                      ))}
-                    </div>
-                  </section>
-                </div>
+        {leadership.length > 0 && (
+          <section className="pb-10 md:pb-14">
+            <div className="mx-auto max-w-7xl px-6 md:px-8 lg:px-10">
+              <h2 className="mb-6 text-xs uppercase tracking-[0.25em] text-muted">Leadership</h2>
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                {leadership.map((member) => (
+                  member.status === "open" ? <OpenMemberCard key={member._id} member={member} /> : <FilledMemberCard key={member._id} member={member} />
+                ))}
               </div>
             </div>
-          </div>
+          </section>
         )}
 
-        <section className="border-t border-border py-12 md:py-24">
-          <div className="mx-auto max-w-7xl px-5 md:px-8 lg:px-10">
-            <div className="grid grid-cols-1 md:grid-cols-[0.9fr_1.4fr] gap-10 md:gap-16">
-              <h2 className="text-3xl md:text-5xl font-serif tracking-tight leading-[1.05]">
-                Investment decisions are challenged collectively.
-              </h2>
-              <div>
-                <p className="text-muted leading-relaxed mb-8 max-w-2xl">
-                  The Investment Committee brings together senior members of W1 to review research, challenge assumptions and determine whether an investment should be approved, revised or rejected.
-                </p>
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 border-y border-border text-xs uppercase tracking-[0.2em] text-muted">
-                  {['Present', 'Challenge', 'Revise', 'Decide'].map((step, index) => (
-                    <div key={step} className={`py-4 ${index > 0 ? 'sm:border-l' : ''} ${index > 1 ? 'sm:border-t md:border-t-0' : ''} border-border`}>
-                      {step}
-                    </div>
-                  ))}
-                </div>
-                <p className="mt-6 text-sm text-muted leading-relaxed max-w-2xl">
-                  The President, Vice President, CIO and relevant research heads can sit on the Investment Committee depending on the investment being discussed.
-                </p>
+        {research.length > 0 && (
+          <section className="pb-10 md:pb-14">
+            <div className="mx-auto max-w-7xl px-6 md:px-8 lg:px-10">
+              <h2 className="mb-6 text-xs uppercase tracking-[0.25em] text-muted">Research</h2>
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                {research.map((member) => (
+                  member.status === "open" ? <OpenMemberCard key={member._id} member={member} /> : <FilledMemberCard key={member._id} member={member} />
+                ))}
               </div>
             </div>
-          </div>
-        </section>
+          </section>
+        )}
 
-        <section className="border-t border-border py-12 md:py-24">
-          <div className="mx-auto max-w-7xl px-5 md:px-8 lg:px-10">
-            <div className="mb-12 flex flex-col justify-between gap-8 md:flex-row md:items-end">
-              <h2 className="text-3xl md:text-5xl font-serif tracking-tight leading-[1.05] max-w-3xl">
-                Member profiles.
-              </h2>
-              <p className="max-w-md text-sm text-muted">
-                Founder profile is shown now. Other profiles will appear once roles are appointed, including LinkedIn, course, research interests and selected W1 work.
-              </p>
+        {platform.length > 0 && (
+          <section className="pb-14 md:pb-20">
+            <div className="mx-auto max-w-7xl px-6 md:px-8 lg:px-10">
+              <h2 className="mb-6 text-xs uppercase tracking-[0.25em] text-muted">Platform & Operations</h2>
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                {platform.map((member) => (
+                  member.status === "open" ? <OpenMemberCard key={member._id} member={member} /> : <FilledMemberCard key={member._id} member={member} />
+                ))}
+              </div>
             </div>
+          </section>
+        )}
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-              <details className="group border-y border-border py-5">
-                <summary className="cursor-pointer list-none">
-                  <h3 className="text-3xl font-serif tracking-tight">Adam</h3>
-                  <p className="mt-2 text-xs uppercase tracking-[0.2em] text-muted">Founder & President</p>
-                  <p className="mt-2 text-sm text-muted">Leadership</p>
-                </summary>
-                <div className="mt-6 space-y-3 border-t border-border pt-5 text-sm text-muted leading-relaxed">
-                  <p>Founder & President of W1.</p>
-                  <p>University: University of Westminster</p>
-                  <p>Course: Finance BSc</p>
-                  <p>Research interests, LinkedIn and selected W1 research will be added once available.</p>
-                </div>
-              </details>
+        {leadership.length === 0 && research.length === 0 && platform.length === 0 && (
+          <section className="pb-14 md:pb-20">
+            <div className="mx-auto max-w-7xl px-6 md:px-8 lg:px-10">
+              <p className="text-muted">No team members added yet.</p>
             </div>
-
-            <div className="mt-16 border-t border-border pt-10">
-              <h2 className="text-3xl md:text-5xl font-serif tracking-tight mb-6">Help build W1.</h2>
-              <p className="text-muted mb-8 max-w-2xl">
-                Fundamental · Macro · Quant · Digital Assets · Platform / Operations
-              </p>
-              <Button href="/join" variant="primary">Explore Opportunities</Button>
-            </div>
-          </div>
-        </section>
+          </section>
+        )}
       </main>
       <Footer />
     </div>

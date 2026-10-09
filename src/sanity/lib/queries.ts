@@ -25,7 +25,6 @@ export const researchBySlugQuery = groq`
     publishedAt,
     abstract,
     ticker,
-    coverImage,
     executiveSummary,
     thesis,
     catalysts,
@@ -34,5 +33,20 @@ export const researchBySlugQuery = groq`
     sources,
     body,
     "reportUrl": report.asset->url
+  }
+`;
+
+export const teamMembersQuery = groq`
+  *[_type == "teamMember"] | order(order asc, name asc) {
+    _id,
+    name,
+    role,
+    group,
+    subGroup,
+    status,
+    order,
+    linkedin,
+    photo,
+    bio
   }
 `;
