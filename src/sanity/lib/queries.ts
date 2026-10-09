@@ -41,6 +41,7 @@ export const teamMembersQuery = groq`
     _id,
     name,
     role,
+    displayRole,
     group,
     subGroup,
     status,
@@ -48,5 +49,28 @@ export const teamMembersQuery = groq`
     linkedin,
     photo,
     bio
+  }
+`;
+
+export const portfolioPositionsQuery = groq`
+  *[_type == "portfolioPosition" && status == "active"] | order(order asc, ticker asc) {
+    _id,
+    ticker,
+    name,
+    shares,
+    costBasis,
+    purchaseDate,
+    notes
+  }
+`;
+
+export const portfolioSettingsQuery = groq`
+  *[_type == "portfolioSettings"][0] {
+    _id,
+    name,
+    cash,
+    startingBalance,
+    updatedAt,
+    notes
   }
 `;
