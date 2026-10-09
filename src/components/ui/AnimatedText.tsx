@@ -1,36 +1,34 @@
 "use client";
 
+import { useEffect, useState, type JSX } from "react";
 import { motion, type Variants } from "framer-motion";
-import { useEffect, useState } from "react";
 
 interface AnimatedTextProps {
   text: string;
   className?: string;
   delay?: number;
-  duration?: number;
-  splitBy?: "words" | "chars";
+  once?: boolean;
+  splitBy?: "words" | "chars" | "lines";
 }
 
-export function AnimatedText({
-  text,
-  className = "",
-  delay = 0,
-  duration = 0.8,
-  splitBy = "words",
-}: AnimatedTextProps) {
-  const [prefersReducedMotion, setPrefersReducedMotion] = useState<boolean | null>(null);
+function usePrefersReducedMotion() {
+  const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    const mediaQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
-    setPrefersReducedMotion(mediaQuery.matches);
-
-    const handleChange = (e: MediaQueryListEvent) => {
-      setPrefersReducedMotion(e.matches);
-    };
-
-    mediaQuery.addEventListener("change", handleChange);
-    return () => mediaQuery.removeEventListener("change", handleChange);
+    const mql = window.matchMedia("(prefers-reduced-motion: reduce)");
+    setMounted(true);
+    setPrefersReducedMotion(mql.matches);
+    const onChange = (e: MediaQueryListEvent) => setPrefersReducedMotion(e.matches);
+    mql.addEventListener("change", onChange);
+    return () => mql.removeEventListener("change", onChange);
   }, []);
+
+  return { prefersReducedMotion, mounted };
+}
+
+export function AnimatedText({ text, className = "", delay = 0, once = true, splitBy = "chars" }: AnimatedTextProps) {
+  const { prefersReducedMotion, mounted } = usePrefersReducedMotion();
 
   const containerVariants: Variants = {
     hidden: { opacity: 1 },
@@ -43,58 +41,52 @@ export function AnimatedText({
     },
   };
 
-  const itemVariants: Variants = {
-    hidden: {
-      opacity: 0,
-      y: 20,
-      filter: "blur(8px)",
-    },
+  const childVariants: Variants = {
+    hidden: { opacity: 0, y: prefersReducedMotion ? 0 : 8 },
     visible: {
       opacity: 1,
       y: 0,
-      filter: "blur(0px)",
       transition: {
-        duration,
-        ease: "easeOut",
+        type: "spring",
+        damping: 20,
+        stiffness: 300,
       },
     },
   };
 
-  if (prefersReducedMotion === null || prefersReducedMotion) {
-    return <div className={className}>{text}</div>;
-  }
+  const words = text.split(" ");
 
-  if (splitBy === "chars") {
-    const chars = text.split("");
+  if (!mounted || prefersReducedMotion) {
     return (
-      <motion.div
-        variants={containerVariants}
-        initial="hidden"
-        animate="visible"
-        className={`flex flex-wrap ${className}`}
-      >
-        {chars.map((char, index) => (
-          <motion.span key={index} variants={itemVariants}>
-            {char === " " ? "\u00A0" : char}
-          </motion.span>
-        ))}
-      </motion.div>
+      <span className={className}>
+        {text}
+      </span>
     );
   }
 
-  const words = text.split(" ");
   return (
-    <motion.div
+    <motion.span
+      className={className}
       variants={containerVariants}
       initial="hidden"
-      animate="visible"
-      className={`flex flex-wrap gap-x-2 ${className}`}
+      whileInView="visible"
+      viewport={{ once }}
+      aria-label={text}
     >
-      {words.map((word, index) => (
-        <motion.span key={index} variants={itemVariants}>
-          {word}
-        </motion.span>
+      {words.map((word, wordIndex) => (
+        <span key={wordIndex} className="inline-block mr-[0.25em] last:mr-0">
+          {word.split("").map((char, charIndex) => (
+            <motion.span
+              key={`${wordIndex}-${charIndex}`}
+              variants={childVariants}
+              className="inline-block"
+              aria-hidden="true"
+            >
+              {char}
+            </motion.span>
+          ))}
+        </span>
       ))}
-    </motion.div>
+    </motion.span>
   );
 }

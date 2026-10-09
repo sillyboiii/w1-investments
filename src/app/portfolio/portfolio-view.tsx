@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 
 interface Position {
   _id: string;
@@ -23,12 +24,21 @@ interface Totals {
   totalReturn: number;
 }
 
+interface PortfolioSettings {
+  _id?: string;
+  name?: string;
+  cash?: number;
+  startingBalance?: number;
+  updatedAt?: string;
+  notes?: string;
+}
+
 interface ApiData {
   ok: boolean;
   reason?: string;
   positions?: Position[];
   totals?: Totals;
-  settings?: any;
+  settings?: PortfolioSettings | null;
   updatedAt?: string;
 }
 
@@ -86,9 +96,9 @@ export default function PortfolioView() {
         )}
         {data && data.ok && totals && (
           <>
-            {(positions.length === 0 && !data.settings) && (
+            {positions.length === 0 && !data.settings && (
               <p className="mb-6 text-muted">
-                No portfolio data. Add <a href="/studio/structure/portfolioSettings" className="underline">Portfolio Settings</a> and <a href="/studio/structure/portfolioPosition" className="underline">Portfolio Positions</a> in Studio to get started.
+                No portfolio data. Add <Link href="/studio" className="underline">Portfolio Settings</Link> and <Link href="/studio" className="underline">Portfolio Positions</Link> in Studio to get started.
               </p>
             )}
             <div className="mb-8 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5">
