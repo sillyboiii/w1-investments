@@ -82,10 +82,15 @@ export default function PortfolioView() {
         {loading && <p className="text-muted">Loading portfolio...</p>}
         {error && <p className="text-muted">{error}</p>}
         {data && !data.ok && data.reason === "sanity_not_configured" && (
-          <p className="text-muted">Add positions in Studio (Portfolio Position + Portfolio Settings) to see the simulated portfolio.</p>
+          <p className="text-muted">Add Sanity environment variables to enable portfolio data.</p>
         )}
         {data && data.ok && totals && (
           <>
+            {(positions.length === 0 && !data.settings) && (
+              <p className="mb-6 text-muted">
+                No portfolio data. Add <a href="/studio/structure/portfolioSettings" className="underline">Portfolio Settings</a> and <a href="/studio/structure/portfolioPosition" className="underline">Portfolio Positions</a> in Studio to get started.
+              </p>
+            )}
             <div className="mb-8 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5">
               <div className="border border-border p-4">
                 <p className="text-xs uppercase tracking-widest text-muted">Total Value</p>
