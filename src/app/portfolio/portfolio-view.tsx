@@ -60,36 +60,31 @@ export default function PortfolioView() {
 
   useEffect(() => {
     let mounted = true;
-    const fetchData = async () => {
-      try {
-        const res = await fetch("/api/portfolio", { cache: "no-store" });
-        const json = await res.json();
+    fetch("/api/portfolio", { cache: "no-store" })
+      .then((res) => res.json())
+      .then((json) => {
         if (mounted) {
           setData(json);
           setLoading(false);
         }
-      } catch (e) {
+      })
+      .catch(() => {
         if (mounted) {
           setError("Failed to load");
           setLoading(false);
         }
-      }
-    };
-    fetchData();
-    const id = setInterval(fetchData, 60000);
+      });
     return () => {
       mounted = false;
-      clearInterval(id);
     };
   }, []);
 
   if (loading) return <p className="text-muted">Loading portfolio...</p>;
   if (error) return <p className="text-muted">{error}</p>;
-  if (!data) return <p className="text-muted">No data.</p>;
-  if (!data.ok) return <p className="text-muted">Failed to load.</p>;
+  if (!data || !data.ok || !data.totals) return <p className="text-muted">No data.</p>;
+
   const positions = data.positions || [];
   const totals = data.totals;
-  if (!totals) return <p className="text-muted">No totals.</p>;
 
   return (
     <div>
