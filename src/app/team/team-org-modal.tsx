@@ -259,30 +259,61 @@ export default function TeamOrgModal({ members }: { members: TeamMember[] }) {
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.98, y: 8 }}
               transition={{ type: "spring", stiffness: 340, damping: 30 }}
-              className="w-full max-w-md border border-border bg-background p-6 shadow-lg"
+              role="dialog"
+              aria-modal="true"
+              aria-label={`${selected.name} profile`}
+              className="relative w-full max-w-lg overflow-hidden border border-border bg-background shadow-2xl"
               onClick={(e) => e.stopPropagation()}
             >
-              <div className="flex flex-col items-center text-center">
-              {selected.photo ? (
-                <div
-                  className="mb-4 h-24 w-24 rounded-full bg-cover bg-center grayscale-[5%] saturate-[0.9] ring-1 ring-border"
-                  style={{ backgroundImage: `url('${urlFor(selected.photo as Parameters<typeof urlFor>[0]).width(192).height(192).fit("crop").url()}')` }}
-                />
-              ) : null}
-              <p className="text-xs uppercase tracking-[0.22em] text-muted">{selected.displayRole || selected.role}</p>
-              <h3 className="mt-2 text-2xl font-serif tracking-tight text-ink">{selected.name}</h3>
-              {selected.bio && <p className="mt-3 text-sm leading-relaxed text-muted">{selected.bio}</p>}
-              {selected.linkedin && (
-                <a
-                  href={selected.linkedin}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="mt-4 inline-flex items-center gap-1.5 border-b border-border pb-1 text-sm text-muted hover:border-ink hover:text-ink"
-                >
-                  <LinkedInIcon /> LinkedIn
-                </a>
-              )}
-              <button onClick={() => setSelected(null)} className="mt-5 text-xs text-muted hover:text-ink">Close</button>
+              <div className="h-1 w-full bg-ink" />
+              <button
+                onClick={() => setSelected(null)}
+                aria-label="Close profile"
+                className="absolute right-4 top-5 flex h-8 w-8 items-center justify-center text-muted transition-colors hover:text-ink"
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" aria-hidden="true">
+                  <path d="M18 6 6 18M6 6l12 12" />
+                </svg>
+              </button>
+
+              <div className="px-8 pb-9 pt-11 text-center md:px-14 md:pb-11">
+                {selected.photo ? (
+                  <div
+                    className="mx-auto mb-6 h-28 w-28 rounded-full bg-cover bg-center ring-1 ring-border grayscale-[8%] saturate-[0.95]"
+                    style={{ backgroundImage: `url('${urlFor(selected.photo as Parameters<typeof urlFor>[0]).width(224).height(224).fit("crop").url()}')` }}
+                  />
+                ) : (
+                  <div className="mx-auto mb-6 flex h-28 w-28 items-center justify-center rounded-full border border-border font-serif text-2xl tracking-tight text-muted">
+                    {selected.name?.split(" ").map((w) => w[0]).slice(0, 2).join("").toUpperCase()}
+                  </div>
+                )}
+
+                <p className="text-[11px] uppercase tracking-[0.28em] text-muted">
+                  {selected.displayRole || selected.role}
+                </p>
+                <h3 className="mt-3 font-serif text-3xl tracking-tight text-ink md:text-4xl">
+                  {selected.name}
+                </h3>
+
+                {selected.bio && (
+                  <>
+                    <div className="mx-auto my-6 h-px w-12 bg-border" />
+                    <p className="mx-auto max-w-md text-sm leading-relaxed text-muted">
+                      {selected.bio}
+                    </p>
+                  </>
+                )}
+
+                {selected.linkedin && (
+                  <a
+                    href={selected.linkedin}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="mt-8 inline-flex items-center gap-2 border border-ink px-5 py-2.5 text-sm font-medium text-ink transition-colors hover:bg-ink hover:text-background"
+                  >
+                    <LinkedInIcon /> Connect on LinkedIn
+                  </a>
+                )}
               </div>
             </motion.div>
           </motion.div>
