@@ -55,7 +55,7 @@ export default function Home() {
             >
               <motion.div variants={itemVariants} className="mb-6 md:mb-8">
                 <AnimatedText
-                  text="Investing through research."
+                  text="W1"
                   className="text-3xl md:text-5xl lg:text-6xl xl:text-7xl font-serif leading-[1.08] tracking-tight max-w-6xl text-white"
                   splitBy="words"
                   delay={0.3}

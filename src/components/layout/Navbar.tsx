@@ -12,7 +12,6 @@ const navLinks = [
   { href: "/research", label: "Research" },
   { href: "/team", label: "Team" },
   { href: "/about", label: "About" },
-  { href: "/join", label: "Join" },
 ];
 
 export function Navbar() {
@@ -83,14 +82,14 @@ export function Navbar() {
               );
             })}
             <Link
-              href="https://www.linkedin.com/company/w1-investments" target="_blank" rel="noopener noreferrer"
+              href="/join"
               className={`group inline-flex items-center gap-1.5 text-sm font-medium tracking-tight border-b pb-1 transition-colors ml-2 ${
                 useLightNav
                   ? "text-white/85 border-white/30 hover:text-white hover:border-white"
                   : "border-border hover:border-ink hover:text-ink"
               }`}
             >
-              LinkedIn
+              Join
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 width="16"
@@ -149,11 +148,11 @@ export function Navbar() {
                 </Link>
               ))}
               <Link
-                href="https://www.linkedin.com/company/w1-investments" target="_blank" rel="noopener noreferrer"
+                href="/join"
                 onClick={() => setIsOpen(false)}
                 className="inline-flex items-center gap-2 text-3xl md:text-4xl font-serif tracking-tight py-2 mt-4"
               >
-                LinkedIn →
+                Join →
               </Link>
             </motion.nav>
           </motion.div>
