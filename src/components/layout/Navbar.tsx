@@ -12,6 +12,7 @@ const navLinks = [
   { href: "/research", label: "Research" },
   { href: "/team", label: "Team" },
   { href: "/about", label: "About" },
+  { href: "/join", label: "Join" },
 ];
 
 export function Navbar() {
@@ -55,7 +56,7 @@ export function Navbar() {
             className={`group transition duration-300 ${useLightNav ? "brightness-0 invert" : ""}`}
           />
 
-          <div className="hidden lg:flex items-center gap-8 xl:gap-10">
+          <div className="hidden lg:flex items-center gap-6 xl:gap-8">
             {navLinks.map((link) => {
               const isActive = pathname === link.href || pathname.startsWith(`${link.href}/`);
               return (

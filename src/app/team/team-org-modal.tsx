@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
+import { AnimatePresence, motion } from "framer-motion";
 import { urlFor } from "@/sanity/lib/image";
 import {
   LEADERSHIP_SLOTS,
@@ -140,21 +141,40 @@ function buildOrg(members: TeamMember[]) {
   return { founder, leadershipRest, extraLeadership, columns };
 }
 
+function MobileGroup({
+  label,
+  nodes,
+  onSelect,
+}: {
+  label: string;
+  nodes: OrgNodeData[];
+  onSelect: (m: TeamMember) => void;
+}) {
+  return (
+    <div className="px-5 py-6 md:px-8">
+      <p className="mb-4 text-xs uppercase tracking-[0.2em] text-muted">{label}</p>
+      <div className="space-y-3">
+        {nodes.map((n) => (
+          <SlotNode key={n.key} node={n} onClick={onSelect} />
+        ))}
+      </div>
+    </div>
+  );
+}
+
 export default function TeamOrgModal({ members }: { members: TeamMember[] }) {
   const [selected, setSelected] = useState<TeamMember | null>(null);
   const org = useMemo(() => buildOrg(members), [members]);
   const { founder, leadershipRest, extraLeadership, columns } = org;
 
-  const allNodes: OrgNodeData[] = [
-    founder,
-    ...leadershipRest,
-    ...extraLeadership,
-    ...columns.flatMap((c) => c.nodes),
-  ];
-
   return (
     <>
-      <div className="mx-auto max-w-[92rem] px-5 md:px-8 lg:px-10">
+      <motion.div
+        initial={{ opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+        className="mx-auto max-w-[92rem] px-5 md:px-8 lg:px-10"
+      >
         <div className="hidden lg:block border-y border-border py-10">
           <div className="mx-auto max-w-4xl">
             <SlotNode node={founder} onClick={setSelected} />
@@ -193,36 +213,56 @@ export default function TeamOrgModal({ members }: { members: TeamMember[] }) {
             className="grid gap-6 pt-8"
             style={{ gridTemplateColumns: `repeat(${columns.length}, minmax(0, 1fr))` }}
           >
-            {columns.map((col) => (
-              <div key={col.key} className="border-t border-border pt-5">
+            {columns.map((col, i) => (
+              <motion.div
+                key={col.key}
+                initial={{ opacity: 0, y: 14 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.4, delay: 0.06 * i, ease: [0.22, 1, 0.36, 1] }}
+                className="border-t border-border pt-5"
+              >
                 <p className="min-h-8 text-xs uppercase tracking-[0.2em] text-muted">{col.label}</p>
                 <div className="mt-3 space-y-2">
                   {col.nodes.map((n) => (
                     <SlotNode key={n.key} node={n} onClick={setSelected} />
                   ))}
                 </div>
-              </div>
+              </motion.div>
             ))}
           </div>
         </div>
 
-        <div className="lg:hidden space-y-3 border-y border-border py-6">
-          {allNodes.map((n) => (
-            <SlotNode key={n.key} node={n} onClick={setSelected} />
+        <div className="lg:hidden divide-y divide-border border-y border-border">
+          <MobileGroup
+            label="Leadership"
+            nodes={[founder, ...leadershipRest, ...extraLeadership]}
+            onSelect={setSelected}
+          />
+          {columns.map((col) => (
+            <MobileGroup key={col.key} label={col.label} nodes={col.nodes} onSelect={setSelected} />
           ))}
         </div>
-      </div>
+      </motion.div>
 
-      {selected && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 px-4"
-          onClick={() => setSelected(null)}
-        >
-          <div
-            className="w-full max-w-md border border-border bg-background p-6 shadow-lg"
-            onClick={(e) => e.stopPropagation()}
+      <AnimatePresence>
+        {selected && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 px-4 backdrop-blur-[2px]"
+            onClick={() => setSelected(null)}
           >
-            <div className="flex flex-col items-center text-center">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 16 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.98, y: 8 }}
+              transition={{ type: "spring", stiffness: 340, damping: 30 }}
+              className="w-full max-w-md border border-border bg-background p-6 shadow-lg"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="flex flex-col items-center text-center">
               {selected.photo ? (
                 <div
                   className="mb-4 h-24 w-24 rounded-full bg-cover bg-center grayscale-[5%] saturate-[0.9] ring-1 ring-border"
@@ -243,10 +283,11 @@ export default function TeamOrgModal({ members }: { members: TeamMember[] }) {
                 </a>
               )}
               <button onClick={() => setSelected(null)} className="mt-5 text-xs text-muted hover:text-ink">Close</button>
-            </div>
-          </div>
-        </div>
-      )}
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </>
   );
 }

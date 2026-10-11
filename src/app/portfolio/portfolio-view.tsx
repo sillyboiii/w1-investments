@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
 import Link from "next/link";
+import { motion } from "framer-motion";
 import { PerformanceChart } from "@/components/ui/PerformanceChart";
 import {
   RANGES,
@@ -24,6 +25,19 @@ const rangeLabels: Record<RangeKey, string> = {
 };
 
 type Tone = "up" | "down" | "neutral";
+
+function Reveal({ children, delay = 0 }: { children: ReactNode; delay?: number }) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 18 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, margin: "-80px" }}
+      transition={{ duration: 0.55, delay, ease: [0.22, 1, 0.36, 1] }}
+    >
+      {children}
+    </motion.div>
+  );
+}
 
 function Stat({
   label,
@@ -208,6 +222,7 @@ export default function PortfolioView() {
     <div className="mx-auto max-w-7xl px-6 md:px-8 lg:px-10 pb-24">
       {hasPositions ? (
         <>
+          <Reveal>
           <section className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
             <Stat
               label="Total Value"
@@ -242,8 +257,10 @@ export default function PortfolioView() {
             </div>
             <div className="sm:col-span-2 lg:col-span-4">{chartPanel}</div>
           </section>
+          </Reveal>
 
           {allocation.length > 0 && (
+            <Reveal delay={0.05}>
             <section className="mt-16 border-t border-border pt-8">
               <SectionHeading index="02" title="Allocation" note="Weighting by market value." />
               <div className="mt-8 space-y-3">
@@ -263,8 +280,10 @@ export default function PortfolioView() {
                 ))}
               </div>
             </section>
+            </Reveal>
           )}
 
+          <Reveal delay={0.08}>
           <section className="mt-16 border-t border-border pt-8">
             <SectionHeading
               index={allocation.length > 0 ? "03" : "02"}
@@ -316,9 +335,11 @@ export default function PortfolioView() {
               </table>
             </div>
           </section>
+          </Reveal>
         </>
       ) : (
         <>
+          <Reveal>
           <section className="border-y border-border py-10 md:py-14">
             <p className="text-[11px] uppercase tracking-[0.3em] text-muted">Pre-launch</p>
             <h2 className="mt-4 max-w-3xl font-serif text-3xl leading-[1.1] tracking-tight md:text-5xl">
@@ -329,7 +350,9 @@ export default function PortfolioView() {
               position is placed, here is how the markets we benchmark against are moving.
             </p>
           </section>
+          </Reveal>
 
+          <Reveal delay={0.05}>
           <section className="pt-12">
             <div className="flex flex-col gap-5 sm:flex-row sm:items-start sm:justify-between">
               <SectionHeading
@@ -341,7 +364,9 @@ export default function PortfolioView() {
             </div>
             {chartPanel}
           </section>
+          </Reveal>
 
+          <Reveal delay={0.1}>
           <section className="mt-16 border-t border-border pt-8">
             <SectionHeading index="02" title="What will be published here" />
             <div className="mt-8 grid grid-cols-1 gap-8 sm:grid-cols-3">
@@ -356,21 +381,8 @@ export default function PortfolioView() {
                 </div>
               ))}
             </div>
-            <div className="mt-10 flex flex-wrap items-center gap-4">
-              <Link
-                href="/join"
-                className="inline-flex items-center gap-2 border border-ink px-5 py-2.5 text-sm text-ink transition-colors hover:bg-ink hover:text-background"
-              >
-                Join the fund
-              </Link>
-              <Link
-                href="/studio"
-                className="text-sm text-muted underline decoration-border underline-offset-4 hover:text-ink"
-              >
-                Add positions in Studio
-              </Link>
-            </div>
           </section>
+          </Reveal>
         </>
       )}
     </div>
