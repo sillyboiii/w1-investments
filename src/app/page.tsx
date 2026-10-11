@@ -2,7 +2,6 @@
 
 import { motion, type Variants } from "framer-motion";
 import { AnimatedText } from "@/components/ui/AnimatedText";
-import { SlashDivider } from "@/components/ui/SlashDivider";
 import { Button } from "@/components/ui/Button";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
@@ -53,20 +52,23 @@ export default function Home() {
               animate="visible"
               className="flex flex-col items-start"
             >
-              <motion.div variants={itemVariants} className="mb-6 md:mb-8">
-                <AnimatedText
-                  text="W1"
-                  className="text-3xl md:text-5xl lg:text-6xl xl:text-7xl font-serif leading-[1.08] tracking-tight max-w-6xl text-white"
-                  splitBy="words"
-                  delay={0.3}
-                />
-              </motion.div>
+              <motion.h1
+                variants={itemVariants}
+                className="mb-6 md:mb-8 max-w-6xl text-4xl md:text-6xl lg:text-7xl font-serif leading-[1.04] tracking-tight text-white"
+              >
+                <span className="block">
+                  <AnimatedText text="Founded by students." splitBy="words" delay={0.3} />
+                </span>
+                <span className="block italic text-white/70">
+                  <AnimatedText text="Run like a fund." splitBy="words" delay={0.5} />
+                </span>
+              </motion.h1>
 
               <motion.p
                 variants={itemVariants}
                 className="text-base md:text-lg text-white/80 max-w-2xl leading-relaxed mb-8 md:mb-10"
               >
-                W1 is a student-led investment fund researching global markets, developing investment theses and managing a model portfolio.
+                W1 is an investment fund researching global markets, developing investment theses and managing a model portfolio.
               </motion.p>
 
               <motion.div
