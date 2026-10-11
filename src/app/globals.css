@@ -9,7 +9,7 @@
   --slate: #94a3b8;
   --charcoal: #1a1a1a;
   --ink: #0f0f0f;
-  color-scheme: light;
+  color-scheme: only light;
 }
 
 @theme inline {
@@ -37,21 +37,23 @@ body {
   overflow-x: hidden;
 }
 
-h1,
-h2,
-h3,
-h4,
-h5,
-h6 {
-  font-family: var(--font-serif), Georgia, 'Times New Roman', serif;
-  color: var(--ink);
-  font-weight: 400;
-  letter-spacing: -0.02em;
-  line-height: 1.1;
-}
+@layer base {
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    font-family: var(--font-serif), Georgia, 'Times New Roman', serif;
+    color: var(--ink);
+    font-weight: 400;
+    letter-spacing: -0.02em;
+    line-height: 1.1;
+  }
 
-hr {
-  border-color: var(--border);
+  hr {
+    border-color: var(--border);
+  }
 }
 
 @keyframes scroll-slow {
