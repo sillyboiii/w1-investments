@@ -4,20 +4,7 @@ import { sanityClient } from "@/sanity/lib/client";
 import { teamMembersQuery } from "@/sanity/lib/queries";
 import { isSanityConfigured } from "@/sanity/env";
 import TeamOrgModal from "./team-org-modal";
-
-interface TeamMember {
-  _id: string;
-  name?: string;
-  displayRole?: string;
-  role?: string;
-  group?: string;
-  subGroup?: string;
-  status?: "filled" | "open";
-  order?: number;
-  linkedin?: string;
-  photo?: any;
-  bio?: string;
-}
+import type { TeamMember } from "./team-utils";
 
 async function getTeamMembers(): Promise<TeamMember[]> {
   if (!isSanityConfigured) return [];

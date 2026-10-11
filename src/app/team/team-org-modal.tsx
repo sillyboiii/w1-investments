@@ -3,20 +3,13 @@
 import { useState } from "react";
 import Link from "next/link";
 import { urlFor } from "@/sanity/lib/image";
-
-interface TeamMember {
-  _id: string;
-  name?: string;
-  displayRole?: string;
-  role?: string;
-  group?: string;
-  subGroup?: string;
-  status?: "filled" | "open";
-  order?: number;
-  linkedin?: string;
-  photo?: any;
-  bio?: string;
-}
+import {
+  RESEARCH_SECTIONS,
+  memberGroup,
+  memberSubGroup,
+  normalizeRole,
+  type TeamMember,
+} from "./team-utils";
 
 function LinkedInIcon() {
   return (
@@ -37,6 +30,12 @@ function FilledNode({ member, onClick }: { member: TeamMember; onClick: () => vo
       onClick={onClick}
       className="mx-auto w-full max-w-sm border-y border-border bg-background py-5 text-center transition-colors hover:border-ink/60"
     >
+      {member.photo ? (
+        <span
+          className="mx-auto mb-3 block h-16 w-16 rounded-full bg-cover bg-center grayscale-[5%] saturate-[0.9] ring-1 ring-border"
+          style={{ backgroundImage: `url('${urlFor(member.photo as Parameters<typeof urlFor>[0]).width(128).height(128).fit("crop").url()}')` }}
+        />
+      ) : null}
       <p className="text-xs uppercase tracking-[0.22em] text-muted">{roleLabel}</p>
       <h3 className="mt-2 text-xl font-serif tracking-tight text-ink">{member.name}</h3>
       <p className="mt-1 text-xs text-muted">View profile</p>
@@ -59,91 +58,116 @@ function Node({ member, onClick }: { member: TeamMember; onClick: () => void }) 
   return member.status === "open" ? <OpenNode member={member} /> : <FilledNode member={member} onClick={onClick} />;
 }
 
+function MemberList({ members, onSelect }: { members: TeamMember[]; onSelect: (m: TeamMember) => void }) {
+  return (
+    <div className="mt-3 space-y-2">
+      {members.map((m) => (
+        <Node key={m._id} member={m} onClick={() => onSelect(m)} />
+      ))}
+    </div>
+  );
+}
+
 export default function TeamOrgModal({ members }: { members: TeamMember[] }) {
   const [selected, setSelected] = useState<TeamMember | null>(null);
 
-  const leadership = members.filter((m) => m.group === "leadership");
-  const research = members.filter((m) => m.group === "research");
-  const platform = members.filter((m) => m.group === "platform");
+  const byRole = (r: string) => members.find((m) => normalizeRole(m.role) === r);
 
-  const founder = leadership.find((m) => m.role === "founder-president");
-  const vp = leadership.find((m) => m.role === "vice-president");
-  const cio = leadership.find((m) => m.role === "cio-head-investments");
-  const otherLeadership = leadership.filter((m) => !["founder-president", "vice-president", "cio-head-investments"].includes(m.role || ""));
+  const leadership = members.filter((m) => memberGroup(m) === "leadership");
+  const founder = byRole("founder-president") ?? leadership[0];
+  const vp = byRole("vice-president");
+  const cio = byRole("cio-head-investments");
+  const leadershipPair = [vp, cio].filter((m): m is TeamMember => Boolean(m) && m !== founder);
+  const otherLeadership = leadership.filter((m) => m !== founder && m !== vp && m !== cio);
 
-  const fundamental = research.filter((m) => m.subGroup === "fundamental" || m.role?.includes("fundamental"));
-  const macro = research.filter((m) => m.subGroup === "macro" || m.role?.includes("macro"));
-  const quant = research.filter((m) => m.subGroup === "quant" || m.role?.includes("quant"));
-  const digital = research.filter((m) => m.subGroup === "digital-assets" || m.role?.includes("digital-assets"));
+  const research = members.filter((m) => memberGroup(m) === "research");
+  const platform = members.filter((m) => memberGroup(m) === "platform");
+  const unclassified = members.filter((m) => !memberGroup(m));
+
+  const sections = RESEARCH_SECTIONS.map((s) => ({
+    label: s.label,
+    members: research.filter((m) => memberSubGroup(m) === s.key),
+  })).filter((s) => s.members.length > 0);
+
+  const columns: { label: string | null; members: TeamMember[] }[] = [
+    ...sections,
+    ...(platform.length > 0 ? [{ label: "Platform / Operations", members: platform }] : []),
+    ...(unclassified.length > 0 ? [{ label: "Team", members: unclassified }] : []),
+  ];
+
+  if (members.length === 0) {
+    return (
+      <div className="mx-auto max-w-[92rem] px-5 md:px-8 lg:px-10">
+        <div className="border-y border-border py-16 text-center">
+          <p className="text-sm text-muted">Team profiles are coming soon.</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <>
       <div className="mx-auto max-w-[92rem] px-5 md:px-8 lg:px-10">
         <div className="hidden lg:block border-y border-border py-10">
-          <div className="mx-auto max-w-5xl">
+          <div className="mx-auto max-w-4xl">
             {founder && <Node member={founder} onClick={() => setSelected(founder)} />}
-            {(vp || cio) && (
+
+            {leadershipPair.length > 0 && (
               <>
                 <Connector />
-                <div className="grid grid-cols-2 gap-6">
-                  <div>{vp && <Node member={vp} onClick={() => setSelected(vp)} />}</div>
-                  <div>{cio && <Node member={cio} onClick={() => setSelected(cio)} />}</div>
+                <div
+                  className="grid gap-6"
+                  style={{ gridTemplateColumns: `repeat(${leadershipPair.length}, minmax(0, 1fr))` }}
+                >
+                  {leadershipPair.map((m) => (
+                    <Node key={m._id} member={m} onClick={() => setSelected(m)} />
+                  ))}
                 </div>
               </>
             )}
+
             {otherLeadership.length > 0 && (
               <>
                 <Connector />
-                <div className="grid grid-cols-2 gap-4">
-                  {otherLeadership.map((m) => <Node key={m._id} member={m} onClick={() => setSelected(m)} />)}
+                <div
+                  className="grid gap-4"
+                  style={{ gridTemplateColumns: "repeat(2, minmax(0, 1fr))" }}
+                >
+                  {otherLeadership.map((m) => (
+                    <Node key={m._id} member={m} onClick={() => setSelected(m)} />
+                  ))}
                 </div>
               </>
             )}
           </div>
 
-          <Connector />
-          <div className="mx-auto h-px max-w-6xl bg-border" />
-          <div className="grid grid-cols-5 gap-6 pt-8">
-            <div className="border-t border-border pt-5">
-              <p className="min-h-12 text-xs uppercase tracking-[0.2em] text-muted">Fundamental Research</p>
-              {fundamental.filter((m) => m.role?.includes("head")).map((m) => <Node key={m._id} member={m} onClick={() => setSelected(m)} />)}
-              <div className="mt-3 space-y-2">
-                {fundamental.filter((m) => !m.role?.includes("head")).map((m) => <Node key={m._id} member={m} onClick={() => setSelected(m)} />)}
+          {columns.length > 0 && (
+            <>
+              <Connector />
+              <div className="mx-auto h-px max-w-6xl bg-border" />
+              <div
+                className="mx-auto grid max-w-6xl gap-6 pt-8"
+                style={{ gridTemplateColumns: `repeat(${columns.length}, minmax(0, 1fr))` }}
+              >
+                {columns.map((col, i) => (
+                  <div key={col.label ?? `col-${i}`} className="border-t border-border pt-5">
+                    {col.label && (
+                      <p className="mb-3 min-h-8 text-xs uppercase tracking-[0.2em] text-muted">{col.label}</p>
+                    )}
+                    <MemberList members={col.members} onSelect={setSelected} />
+                  </div>
+                ))}
               </div>
-            </div>
-            <div className="border-t border-border pt-5">
-              <p className="min-h-12 text-xs uppercase tracking-[0.2em] text-muted">Macro Research</p>
-              {macro.filter((m) => m.role?.includes("head")).map((m) => <Node key={m._id} member={m} onClick={() => setSelected(m)} />)}
-              <div className="mt-3 space-y-2">
-                {macro.filter((m) => !m.role?.includes("head")).map((m) => <Node key={m._id} member={m} onClick={() => setSelected(m)} />)}
-              </div>
-            </div>
-            <div className="border-t border-border pt-5">
-              <p className="min-h-12 text-xs uppercase tracking-[0.2em] text-muted">Quantitative Research + Portfolio Risk</p>
-              {quant.filter((m) => m.role?.includes("head")).map((m) => <Node key={m._id} member={m} onClick={() => setSelected(m)} />)}
-              <div className="mt-3 space-y-2">
-                {quant.filter((m) => !m.role?.includes("head")).map((m) => <Node key={m._id} member={m} onClick={() => setSelected(m)} />)}
-              </div>
-            </div>
-            <div className="border-t border-border pt-5">
-              <p className="min-h-12 text-xs uppercase tracking-[0.2em] text-muted">Digital Assets Research</p>
-              {digital.filter((m) => m.role?.includes("head")).map((m) => <Node key={m._id} member={m} onClick={() => setSelected(m)} />)}
-              <div className="mt-3 space-y-2">
-                {digital.filter((m) => !m.role?.includes("head")).map((m) => <Node key={m._id} member={m} onClick={() => setSelected(m)} />)}
-              </div>
-            </div>
-            <div className="border-t border-border pt-5">
-              <p className="min-h-12 text-xs uppercase tracking-[0.2em] text-muted">Platform</p>
-              {platform.filter((m) => m.role?.includes("head")).map((m) => <Node key={m._id} member={m} onClick={() => setSelected(m)} />)}
-              <div className="mt-3 space-y-2">
-                {platform.filter((m) => !m.role?.includes("head")).map((m) => <Node key={m._id} member={m} onClick={() => setSelected(m)} />)}
-              </div>
-            </div>
-          </div>
+            </>
+          )}
         </div>
 
         <div className="lg:hidden space-y-3 border-y border-border py-6">
-          {members.map((m) => <Node key={m._id} member={m} onClick={() => setSelected(m)} />)}
+          {members.length === 0 ? (
+            <p className="text-center text-sm text-muted">Team profiles coming soon.</p>
+          ) : (
+            members.map((m) => <Node key={m._id} member={m} onClick={() => setSelected(m)} />)
+          )}
         </div>
       </div>
 
@@ -151,12 +175,12 @@ export default function TeamOrgModal({ members }: { members: TeamMember[] }) {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 px-4" onClick={() => setSelected(null)}>
           <div className="w-full max-w-md border border-border bg-background p-6 shadow-lg" onClick={(e) => e.stopPropagation()}>
             <div className="flex flex-col items-center text-center">
-              {selected.photo && (
+              {selected.photo ? (
                 <div
                   className="mb-4 h-24 w-24 rounded-full bg-cover bg-center grayscale-[5%] saturate-[0.9] ring-1 ring-border"
-                  style={{ backgroundImage: `url('${urlFor(selected.photo).width(192).height(192).fit("crop").url()}')` }}
+                  style={{ backgroundImage: `url('${urlFor(selected.photo as Parameters<typeof urlFor>[0]).width(192).height(192).fit("crop").url()}')` }}
                 />
-              )}
+              ) : null}
               <p className="text-xs uppercase tracking-[0.22em] text-muted">{selected.displayRole || selected.role}</p>
               <h3 className="mt-2 text-2xl font-serif tracking-tight text-ink">{selected.name}</h3>
               {selected.bio && <p className="mt-3 text-sm leading-relaxed text-muted">{selected.bio}</p>}
