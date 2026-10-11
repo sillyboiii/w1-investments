@@ -38,17 +38,6 @@ function monthsAgoIso(months: number): string {
   return d.toISOString().slice(0, 10);
 }
 
-const SAMPLE_POSITIONS = [
-  { ticker: "AAPL", name: "Apple", shares: 40, costBasis: 300, months: 11 },
-  { ticker: "MSFT", name: "Microsoft", shares: 25, costBasis: 470, months: 10 },
-  { ticker: "XOM", name: "Exxon Mobil", shares: 70, costBasis: 150, months: 9 },
-  { ticker: "JPM", name: "JPMorgan Chase", shares: 35, costBasis: 300, months: 8 },
-  { ticker: "V", name: "Visa", shares: 30, costBasis: 340, months: 7 },
-  { ticker: "GOOGL", name: "Alphabet", shares: 35, costBasis: 310, months: 6 },
-  { ticker: "AMZN", name: "Amazon", shares: 42, costBasis: 235, months: 4 },
-  { ticker: "NVDA", name: "NVIDIA", shares: 45, costBasis: 200, months: 3 },
-];
-
 // Index proxies available on Nasdaq (keyless fallback when Yahoo rate-limits).
 const NASDAQ_PROXY: Record<string, string> = { "^GSPC": "SPY", "^FTSE": "EWU" };
 const CACHE_TTL_MS = 5 * 60 * 1000;
@@ -228,7 +217,6 @@ export async function GET() {
   try {
     let settings: PortfolioSettings | null = null;
     let rawPositions: RawPosition[] = [];
-    let sample = false;
 
     if (isSanityConfigured) {
       const [s, p] = await Promise.all([
@@ -237,24 +225,6 @@ export async function GET() {
       ]);
       settings = s ?? null;
       rawPositions = p ?? [];
-    }
-
-    if (!settings && rawPositions.length === 0) {
-      sample = true;
-      settings = {
-        name: "W1 Fund I (illustrative)",
-        cash: 35330,
-        startingBalance: 120000,
-        notes: "Illustrative sample holdings shown for demonstration.",
-      };
-      rawPositions = SAMPLE_POSITIONS.map((s) => ({
-        _id: `sample-${s.ticker}`,
-        ticker: s.ticker,
-        name: s.name,
-        shares: s.shares,
-        costBasis: s.costBasis,
-        purchaseDate: monthsAgoIso(s.months),
-      }));
     }
 
     const symbols = [
@@ -320,12 +290,13 @@ export async function GET() {
     const totalReturnPct = startingBalance > 0 ? (totalReturnAbs / startingBalance) * 100 : 0;
     const priorValue = totalValue - (dayChangeIncluded ? dayChangeTotal : 0);
 
-    const performance = buildPerformance(rawPositions, map, cash);
+    const performance = rawPositions.length > 0 ? buildPerformance(rawPositions, map, cash) : buildPerformance([], map, 0);
 
     return NextResponse.json(
       {
         ok: true,
-        sample,
+        hasPositions: rawPositions.length > 0,
+        hasSettings: settings !== null,
         settings,
         positions,
         totals: {

@@ -22,7 +22,14 @@ export const CHART_SERIES: SeriesMeta[] = [
   { key: "ftse", label: "FTSE 100", color: "#c2703a", width: 1.5 },
 ];
 
+type Pt = { x: number; y: number };
+type PtSeries = Record<string, (Pt | null)[]>;
+
 const PAD = { top: 18, right: 14, bottom: 30, left: 46 };
+const N = 140;
+const ANIM_MS = 520;
+
+const easeInOut = (t: number) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
 
 function niceTicks(min: number, max: number, count = 5): number[] {
   const span = max - min;
@@ -39,12 +46,8 @@ function niceTicks(min: number, max: number, count = 5): number[] {
 
 function fmtAxis(t: number, spanDays: number): string {
   const d = new Date(t * 1000);
-  if (spanDays > 200) {
-    return d.toLocaleDateString("en-US", { month: "short", year: "2-digit" });
-  }
-  if (spanDays > 45) {
-    return d.toLocaleDateString("en-US", { month: "short" });
-  }
+  if (spanDays > 200) return d.toLocaleDateString("en-US", { month: "short", year: "2-digit" });
+  if (spanDays > 45) return d.toLocaleDateString("en-US", { month: "short" });
   return d.toLocaleDateString("en-US", { day: "numeric", month: "short" });
 }
 
@@ -61,6 +64,31 @@ function fmtPctShort(v: number | null): string {
   return `${v > 0 ? "+" : ""}${v.toFixed(2)}%`;
 }
 
+function resample(series: ReturnPoint[], key: keyof Omit<ReturnPoint, "t">, t0: number, t1: number): (number | null)[] {
+  const out: (number | null)[] = new Array(N).fill(null);
+  if (series.length === 0 || t1 === t0) return out;
+  let idx = 0;
+  for (let i = 0; i < N; i++) {
+    const t = t0 + ((t1 - t0) * i) / (N - 1);
+    while (idx < series.length - 1 && series[idx + 1].t <= t) idx++;
+    const a = series[idx];
+    if (a.t > t) continue;
+    const b = series[Math.min(idx + 1, series.length - 1)];
+    const va = a[key];
+    const vb = b[key];
+    if (va == null && vb == null) continue;
+    if (va == null) {
+      out[i] = vb;
+    } else if (vb == null || b.t === a.t) {
+      out[i] = va;
+    } else {
+      const f = (t - a.t) / (b.t - a.t);
+      out[i] = va + (vb - va) * f;
+    }
+  }
+  return out;
+}
+
 interface Props {
   series: ReturnPoint[];
   height?: number;
@@ -70,6 +98,8 @@ export function PerformanceChart({ series, height }: Props) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [width, setWidth] = useState(800);
   const [hover, setHover] = useState<number | null>(null);
+  const animRef = useRef<PtSeries>({});
+  const [anim, setAnim] = useState<PtSeries>({});
 
   useEffect(() => {
     const el = containerRef.current;
@@ -81,11 +111,16 @@ export function PerformanceChart({ series, height }: Props) {
     return () => ro.disconnect();
   }, []);
 
+  const activeSeries = useMemo(
+    () => CHART_SERIES.filter((s) => series.some((p) => p[s.key] != null)),
+    [series],
+  );
+
   const h = height ?? (width < 640 ? 260 : 360);
   const innerW = Math.max(width - PAD.left - PAD.right, 10);
   const innerH = Math.max(h - PAD.top - PAD.bottom, 10);
 
-  const { t0, t1, yMin, yMax, ticks, xXs } = useMemo(() => {
+  const domain = useMemo(() => {
     const first = series[0]?.t ?? 0;
     const last = series[series.length - 1]?.t ?? 1;
     let lo = Infinity;
@@ -106,7 +141,7 @@ export function PerformanceChart({ series, height }: Props) {
       hi += 0.5;
       lo -= 0.5;
     }
-    const pad = (hi - lo) * 0.08;
+    const pad = (hi - lo) * 0.1;
     const yMin = lo - pad;
     const yMax = hi + pad;
     const ticks = niceTicks(yMin, yMax, 5).filter((v) => v >= yMin && v <= yMax);
@@ -120,31 +155,67 @@ export function PerformanceChart({ series, height }: Props) {
     return { t0: first, t1: last, yMin, yMax, ticks, xXs };
   }, [series, innerW]);
 
-  const sx = (t: number) => PAD.left + (t1 === t0 ? 0 : ((t - t0) / (t1 - t0)) * innerW);
-  const sy = (v: number) => PAD.top + (1 - (v - yMin) / (yMax - yMin)) * innerH;
+  const targets = useMemo<PtSeries>(() => {
+    const out: PtSeries = {};
+    for (const s of CHART_SERIES) {
+      const vals = resample(series, s.key, domain.t0, domain.t1);
+      out[s.key] = vals.map((v, i) =>
+        v == null ? null : { x: PAD.left + (i / (N - 1)) * innerW, y: PAD.top + (1 - (v - domain.yMin) / (domain.yMax - domain.yMin)) * innerH },
+      );
+    }
+    return out;
+  }, [series, domain, innerW, innerH]);
 
-  const linePath = (key: keyof Omit<ReturnPoint, "t">) => {
+  useEffect(() => {
+    const start = performance.now();
+    let raf = 0;
+    const tick = (now: number) => {
+      const p = Math.min((now - start) / ANIM_MS, 1);
+      const e = easeInOut(p);
+      const next: PtSeries = {};
+      for (const s of CHART_SERIES) {
+        const tgt = targets[s.key] ?? [];
+        const frm = animRef.current[s.key] ?? tgt;
+        next[s.key] = tgt.map((tp, i) => {
+          const fp = frm[i];
+          if (!tp && !fp) return null;
+          if (!fp) return tp;
+          if (!tp) return fp;
+          return { x: fp.x + (tp.x - fp.x) * e, y: fp.y + (tp.y - fp.y) * e };
+        });
+      }
+      animRef.current = next;
+      setAnim(next);
+      if (p < 1) raf = requestAnimationFrame(tick);
+    };
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+  }, [targets]);
+
+  const sy0 = (v: number) => PAD.top + (1 - (v - domain.yMin) / (domain.yMax - domain.yMin)) * innerH;
+
+  const pathFrom = (key: string) => {
+    const pts = anim[key] ?? [];
     let d = "";
     let started = false;
-    for (const p of series) {
-      const v = p[key];
-      if (v == null) {
+    for (const pt of pts) {
+      if (!pt) {
         started = false;
         continue;
       }
-      d += `${started ? "L" : "M"}${sx(p.t).toFixed(2)} ${sy(v).toFixed(2)} `;
+      d += `${started ? "L" : "M"}${pt.x.toFixed(2)} ${pt.y.toFixed(2)} `;
       started = true;
     }
     return d.trim();
   };
 
-  const areaPath = () => {
-    const pts = series.filter((p) => p.portfolio != null);
+  const areaFrom = () => {
+    const pts = (anim["portfolio"] ?? []).filter((p): p is Pt => Boolean(p));
     if (pts.length < 2) return "";
-    const y0 = sy(0);
-    let d = `M${sx(pts[0].t).toFixed(2)} ${y0.toFixed(2)} `;
-    for (const p of pts) d += `L${sx(p.t).toFixed(2)} ${sy(p.portfolio as number).toFixed(2)} `;
-    d += `L${sx(pts[pts.length - 1].t).toFixed(2)} ${y0.toFixed(2)} Z`;
+    const y0 = sy0(0);
+    let d = `M${pts[0].x.toFixed(2)} ${y0.toFixed(2)} `;
+    for (const p of pts) d += `L${p.x.toFixed(2)} ${p.y.toFixed(2)} `;
+    d += `L${pts[pts.length - 1].x.toFixed(2)} ${y0.toFixed(2)} Z`;
     return d;
   };
 
@@ -153,10 +224,19 @@ export function PerformanceChart({ series, height }: Props) {
     return null;
   };
 
+  const endPoint = (key: string): Pt | null => {
+    const pts = anim[key] ?? [];
+    for (let i = pts.length - 1; i >= 0; i--) if (pts[i]) return pts[i];
+    return null;
+  };
+
+  const sx = (t: number) =>
+    PAD.left + (domain.t1 === domain.t0 ? 0 : ((t - domain.t0) / (domain.t1 - domain.t0)) * innerW);
+
   const onMove = (e: ReactPointerEvent<SVGSVGElement>) => {
     const rect = e.currentTarget.getBoundingClientRect();
     const relX = ((e.clientX - rect.left) / rect.width) * width;
-    const t = t0 + ((relX - PAD.left) / innerW) * (t1 - t0);
+    const t = domain.t0 + ((relX - PAD.left) / innerW) * (domain.t1 - domain.t0);
     let best = 0;
     let bestD = Infinity;
     for (let i = 0; i < series.length; i++) {
@@ -170,20 +250,18 @@ export function PerformanceChart({ series, height }: Props) {
   };
 
   const hoverPoint = hover != null ? series[hover] : null;
-  const zeroY = sy(0);
+  const zeroY = sy0(0);
 
   return (
     <div className="relative w-full" ref={containerRef}>
       <div className="mb-3 flex flex-wrap items-center gap-x-5 gap-y-2">
-        {CHART_SERIES.map((s) => {
+        {activeSeries.map((s) => {
           const v = lastOf(s.key);
           return (
             <div key={s.key} className="flex items-center gap-2">
               <span className="inline-block h-0.5 w-4 rounded-full" style={{ backgroundColor: s.color }} />
               <span className="text-xs tracking-tight text-foreground">{s.label}</span>
-              <span
-                className={`text-xs tabular-nums ${v == null ? "text-muted" : v >= 0 ? "text-emerald-700" : "text-red-700"}`}
-              >
+              <span className={`text-xs tabular-nums ${v == null ? "text-muted" : v >= 0 ? "text-emerald-700" : "text-red-700"}`}>
                 {fmtPctShort(v)}
               </span>
             </div>
@@ -201,25 +279,25 @@ export function PerformanceChart({ series, height }: Props) {
       >
         <defs>
           <linearGradient id="pf-area" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor="#0f0f0f" stopOpacity="0.09" />
+            <stop offset="0%" stopColor="#0f0f0f" stopOpacity="0.1" />
             <stop offset="100%" stopColor="#0f0f0f" stopOpacity="0" />
           </linearGradient>
         </defs>
 
-        {ticks.map((v) => (
+        {domain.ticks.map((v) => (
           <g key={`y-${v}`}>
             <line
               x1={PAD.left}
               x2={PAD.left + innerW}
-              y1={sy(v)}
-              y2={sy(v)}
+              y1={sy0(v)}
+              y2={sy0(v)}
               stroke="var(--border)"
               strokeWidth={1}
               strokeDasharray="2 4"
             />
             <text
               x={PAD.left - 8}
-              y={sy(v)}
+              y={sy0(v)}
               textAnchor="end"
               dominantBaseline="middle"
               className="fill-muted"
@@ -242,12 +320,12 @@ export function PerformanceChart({ series, height }: Props) {
           />
         )}
 
-        {xXs.map((x, i) => (
+        {domain.xXs.map((x, i) => (
           <text
             key={`x-${i}`}
             x={sx(x.t)}
             y={h - 10}
-            textAnchor={i === 0 ? "start" : i === xXs.length - 1 ? "end" : "middle"}
+            textAnchor={i === 0 ? "start" : i === domain.xXs.length - 1 ? "end" : "middle"}
             className="fill-muted"
             style={{ fontSize: 10 }}
           >
@@ -255,10 +333,10 @@ export function PerformanceChart({ series, height }: Props) {
           </text>
         ))}
 
-        {areaPath() && <path d={areaPath()} fill="url(#pf-area)" />}
+        <path d={areaFrom()} fill="url(#pf-area)" />
 
         {CHART_SERIES.map((s) => {
-          const d = linePath(s.key);
+          const d = pathFrom(s.key);
           if (!d) return null;
           return (
             <path
@@ -274,48 +352,35 @@ export function PerformanceChart({ series, height }: Props) {
           );
         })}
 
+        {activeSeries.map((s) => {
+          const pt = endPoint(s.key);
+          if (!pt) return null;
+          return <circle key={`end-${s.key}`} cx={pt.x} cy={pt.y} r={2.6} fill={s.color} />;
+        })}
+
         {hoverPoint && (
-          <g>
-            <line
-              x1={sx(hoverPoint.t)}
-              x2={sx(hoverPoint.t)}
-              y1={PAD.top}
-              y2={PAD.top + innerH}
-              stroke="var(--foreground)"
-              strokeOpacity={0.25}
-              strokeWidth={1}
-            />
-            {CHART_SERIES.map((s) => {
-              const v = hoverPoint[s.key];
-              if (v == null) return null;
-              return (
-                <circle
-                  key={s.key}
-                  cx={sx(hoverPoint.t)}
-                  cy={sy(v)}
-                  r={s.key === "portfolio" ? 3.5 : 2.5}
-                  fill={s.color}
-                  stroke="var(--background)"
-                  strokeWidth={1.5}
-                />
-              );
-            })}
-          </g>
+          <line
+            x1={sx(hoverPoint.t)}
+            x2={sx(hoverPoint.t)}
+            y1={PAD.top}
+            y2={PAD.top + innerH}
+            stroke="var(--foreground)"
+            strokeOpacity={0.25}
+            strokeWidth={1}
+          />
         )}
       </svg>
 
       {hoverPoint && (
         <div
-          className="pointer-events-none absolute z-10 min-w-[150px] border border-border bg-background/95 px-3 py-2 shadow-sm backdrop-blur-sm"
+          className="pointer-events-none absolute z-10 min-w-[160px] border border-border bg-background/95 px-3 py-2 shadow-sm backdrop-blur-sm"
           style={{
-            left: Math.min(Math.max(sx(hoverPoint.t) - 75, 0), Math.max(width - 160, 0)),
+            left: Math.min(Math.max(sx(hoverPoint.t) - 80, 0), Math.max(width - 168, 0)),
             top: 8,
           }}
         >
-          <p className="mb-1 text-[11px] uppercase tracking-widest text-muted">
-            {fmtTooltipDate(hoverPoint.t)}
-          </p>
-          {CHART_SERIES.map((s) => (
+          <p className="mb-1 text-[11px] uppercase tracking-widest text-muted">{fmtTooltipDate(hoverPoint.t)}</p>
+          {activeSeries.map((s) => (
             <div key={s.key} className="flex items-center justify-between gap-4 text-xs">
               <span className="flex items-center gap-1.5 text-foreground">
                 <span className="inline-block h-1.5 w-1.5 rounded-full" style={{ backgroundColor: s.color }} />

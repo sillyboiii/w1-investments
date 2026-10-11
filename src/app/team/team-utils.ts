@@ -72,9 +72,57 @@ function ROLE_GROUP_FALLBACK(role?: string): { group: string; subGroup?: string 
   return ROLE_META[normalizeRole(role)];
 }
 
-export const RESEARCH_SECTIONS: { key: string; label: string }[] = [
-  { key: "fundamental", label: "Fundamental Research" },
-  { key: "macro", label: "Macro Research" },
-  { key: "quant", label: "Quantitative Research + Portfolio Risk" },
-  { key: "digital-assets", label: "Digital Assets" },
+export interface OrgSlot {
+  role: string;
+  title: string;
+}
+
+export const LEADERSHIP_SLOTS: OrgSlot[] = [
+  { role: "founder-president", title: "Founder / President" },
+  { role: "vice-president", title: "Vice President" },
+  { role: "cio-head-investments", title: "CIO / Head of Investments" },
+];
+
+export const RESEARCH_GROUPS: { key: string; label: string; slots: OrgSlot[] }[] = [
+  {
+    key: "fundamental",
+    label: "Fundamental Research",
+    slots: [
+      { role: "head-fundamental", title: "Head of Fundamental Research" },
+      { role: "fundamental-analyst", title: "Fundamental Research Analyst" },
+    ],
+  },
+  {
+    key: "macro",
+    label: "Macro Research",
+    slots: [
+      { role: "head-macro", title: "Head of Macro" },
+      { role: "macro-analyst", title: "Macro Analyst" },
+    ],
+  },
+  {
+    key: "quant",
+    label: "Quantitative Research",
+    slots: [
+      { role: "head-quant", title: "Head of Quant" },
+      { role: "quant-analyst", title: "Portfolio Risk / Quant Analyst" },
+    ],
+  },
+  {
+    key: "digital-assets",
+    label: "Digital Assets",
+    slots: [
+      { role: "head-digital-assets", title: "Head of Digital Assets" },
+      { role: "digital-assets-analyst", title: "Digital Asset Analyst" },
+    ],
+  },
+];
+
+export const PLATFORM_SLOTS: OrgSlot[] = [
+  { role: "head-ops", title: "Head of Operations / Platform" },
+  { role: "operations", title: "Operations" },
+  { role: "brand-creative", title: "Brand & Creative" },
+  { role: "media-social", title: "Media / Social" },
+  { role: "research-publishing", title: "Research Publishing" },
+  { role: "partnerships-events", title: "Partnerships & Events" },
 ];

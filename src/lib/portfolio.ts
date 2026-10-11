@@ -53,7 +53,8 @@ export interface PortfolioApiData {
   ok: boolean;
   reason?: string;
   error?: string;
-  sample?: boolean;
+  hasPositions?: boolean;
+  hasSettings?: boolean;
   settings?: PortfolioSettings | null;
   positions?: PortfolioPosition[];
   totals?: PortfolioTotals;

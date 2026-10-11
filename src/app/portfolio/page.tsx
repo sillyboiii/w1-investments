@@ -14,7 +14,7 @@ export default function PortfolioPage() {
                 PORTFOLIO
               </h1>
               <p className="text-xl md:text-2xl font-serif tracking-tight text-muted mt-4 max-w-3xl">
-                Simulated investment portfolio tracked with live market data.
+                Positions, allocation and performance, measured against the S&amp;P 500 and FTSE 100.
               </p>
             </div>
           </div>

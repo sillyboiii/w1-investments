@@ -1,13 +1,16 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import Link from "next/link";
 import { urlFor } from "@/sanity/lib/image";
 import {
-  RESEARCH_SECTIONS,
+  LEADERSHIP_SLOTS,
+  PLATFORM_SLOTS,
+  RESEARCH_GROUPS,
   memberGroup,
   memberSubGroup,
   normalizeRole,
+  type OrgSlot,
   type TeamMember,
 } from "./team-utils";
 
@@ -20,7 +23,13 @@ function LinkedInIcon() {
 }
 
 function Connector() {
-  return <div className="mx-auto h-10 w-px bg-border" />;
+  return <div className="mx-auto h-9 w-px bg-border" />;
+}
+
+interface OrgNodeData {
+  key: string;
+  title: string;
+  member: TeamMember | null;
 }
 
 function FilledNode({ member, onClick }: { member: TeamMember; onClick: () => void }) {
@@ -28,152 +37,191 @@ function FilledNode({ member, onClick }: { member: TeamMember; onClick: () => vo
   return (
     <button
       onClick={onClick}
-      className="mx-auto w-full max-w-sm border-y border-border bg-background py-5 text-center transition-colors hover:border-ink/60"
+      className="group mx-auto flex w-full max-w-sm flex-col items-center border border-border bg-background px-4 py-5 text-center transition-colors hover:border-ink"
     >
       {member.photo ? (
         <span
-          className="mx-auto mb-3 block h-16 w-16 rounded-full bg-cover bg-center grayscale-[5%] saturate-[0.9] ring-1 ring-border"
-          style={{ backgroundImage: `url('${urlFor(member.photo as Parameters<typeof urlFor>[0]).width(128).height(128).fit("crop").url()}')` }}
+          className="mb-3 block h-16 w-16 rounded-full bg-cover bg-center grayscale-[5%] saturate-[0.9] ring-1 ring-border"
+          style={{
+            backgroundImage: `url('${urlFor(member.photo as Parameters<typeof urlFor>[0]).width(128).height(128).fit("crop").url()}')`,
+          }}
         />
-      ) : null}
-      <p className="text-xs uppercase tracking-[0.22em] text-muted">{roleLabel}</p>
-      <h3 className="mt-2 text-xl font-serif tracking-tight text-ink">{member.name}</h3>
-      <p className="mt-1 text-xs text-muted">View profile</p>
+      ) : (
+        <span className="mb-3 flex h-16 w-16 items-center justify-center rounded-full border border-border text-sm uppercase tracking-widest text-muted">
+          {member.name?.slice(0, 2).toUpperCase()}
+        </span>
+      )}
+      <span className="text-[11px] uppercase tracking-[0.22em] text-muted">{roleLabel}</span>
+      <h3 className="mt-2 text-lg font-serif tracking-tight text-ink">{member.name}</h3>
+      <span className="mt-1 text-[11px] uppercase tracking-widest text-muted opacity-0 transition-opacity group-hover:opacity-100">
+        View profile
+      </span>
     </button>
   );
 }
 
-function OpenNode({ member }: { member: TeamMember }) {
-  const roleLabel = member.displayRole || member.role || "Open position";
+function OpenNode({ title }: { title: string }) {
   return (
-    <Link href="/join" className="mx-auto block w-full max-w-sm border-y border-border bg-background py-5 text-center transition-colors hover:border-ink/60 hover:text-ink">
-      <p className="text-xs uppercase tracking-[0.22em] text-muted">Open position</p>
-      <h3 className="mt-2 text-xl font-serif tracking-tight text-ink">{roleLabel}</h3>
-      <p className="mt-1 text-xs text-muted">Click to apply</p>
+    <Link
+      href="/join"
+      className="group mx-auto flex w-full flex-col items-center border border-dashed border-border px-4 py-5 text-center transition-colors hover:border-ink"
+    >
+      <span className="text-[10px] uppercase tracking-[0.22em] text-muted">Open position</span>
+      <span className="mt-2 text-base font-serif tracking-tight text-ink">{title}</span>
+      <span className="mt-1 text-[10px] uppercase tracking-widest text-muted opacity-0 transition-opacity group-hover:opacity-100">
+        Apply
+      </span>
     </Link>
   );
 }
 
-function Node({ member, onClick }: { member: TeamMember; onClick: () => void }) {
-  return member.status === "open" ? <OpenNode member={member} /> : <FilledNode member={member} onClick={onClick} />;
+function SlotNode({ node, onClick }: { node: OrgNodeData; onClick: (m: TeamMember) => void }) {
+  if (node.member && node.member.status !== "open") {
+    return <FilledNode member={node.member} onClick={() => onClick(node.member as TeamMember)} />;
+  }
+  const title = node.member?.displayRole || node.member?.role || node.title;
+  return <OpenNode title={title} />;
 }
 
-function MemberList({ members, onSelect }: { members: TeamMember[]; onSelect: (m: TeamMember) => void }) {
-  return (
-    <div className="mt-3 space-y-2">
-      {members.map((m) => (
-        <Node key={m._id} member={m} onClick={() => onSelect(m)} />
-      ))}
-    </div>
-  );
+function buildOrg(members: TeamMember[]) {
+  const roleMap = new Map<string, TeamMember>();
+  for (const m of members) {
+    const r = normalizeRole(m.role);
+    if (r && !roleMap.has(r)) roleMap.set(r, m);
+  }
+
+  const matched = new Set<string>();
+  const slot = (s: OrgSlot): OrgNodeData => {
+    const m = roleMap.get(s.role) ?? null;
+    if (m) matched.add(m._id);
+    return { key: s.role, title: s.title, member: m };
+  };
+
+  const leadership = LEADERSHIP_SLOTS.map(slot);
+  const founder = leadership[0];
+  const leadershipRest = leadership.slice(1);
+
+  const researchColumns = RESEARCH_GROUPS.map((g) => ({
+    key: g.key,
+    label: g.label,
+    nodes: g.slots.map(slot),
+  }));
+
+  const platformColumn = {
+    key: "platform",
+    label: "Platform / Operations",
+    nodes: PLATFORM_SLOTS.map(slot),
+  };
+
+  const extras = members.filter((m) => !matched.has(m._id));
+  const extraLeadership: OrgNodeData[] = [];
+  const extraOther: OrgNodeData[] = [];
+  for (const m of extras) {
+    const node: OrgNodeData = { key: m._id, title: m.displayRole || m.role || "Team", member: m };
+    const group = memberGroup(m);
+    if (group === "leadership") {
+      extraLeadership.push(node);
+    } else if (group === "research") {
+      const col = researchColumns.find((c) => c.key === memberSubGroup(m));
+      (col ? col.nodes : extraOther).push(node);
+    } else if (group === "platform") {
+      platformColumn.nodes.push(node);
+    } else {
+      extraOther.push(node);
+    }
+  }
+
+  const columns = [
+    ...researchColumns,
+    platformColumn,
+    ...(extraOther.length > 0 ? [{ key: "other", label: "Team", nodes: extraOther }] : []),
+  ];
+
+  return { founder, leadershipRest, extraLeadership, columns };
 }
 
 export default function TeamOrgModal({ members }: { members: TeamMember[] }) {
   const [selected, setSelected] = useState<TeamMember | null>(null);
+  const org = useMemo(() => buildOrg(members), [members]);
+  const { founder, leadershipRest, extraLeadership, columns } = org;
 
-  const byRole = (r: string) => members.find((m) => normalizeRole(m.role) === r);
-
-  const leadership = members.filter((m) => memberGroup(m) === "leadership");
-  const founder = byRole("founder-president") ?? leadership[0];
-  const vp = byRole("vice-president");
-  const cio = byRole("cio-head-investments");
-  const leadershipPair = [vp, cio].filter((m): m is TeamMember => Boolean(m) && m !== founder);
-  const otherLeadership = leadership.filter((m) => m !== founder && m !== vp && m !== cio);
-
-  const research = members.filter((m) => memberGroup(m) === "research");
-  const platform = members.filter((m) => memberGroup(m) === "platform");
-  const unclassified = members.filter((m) => !memberGroup(m));
-
-  const sections = RESEARCH_SECTIONS.map((s) => ({
-    label: s.label,
-    members: research.filter((m) => memberSubGroup(m) === s.key),
-  })).filter((s) => s.members.length > 0);
-
-  const columns: { label: string | null; members: TeamMember[] }[] = [
-    ...sections,
-    ...(platform.length > 0 ? [{ label: "Platform / Operations", members: platform }] : []),
-    ...(unclassified.length > 0 ? [{ label: "Team", members: unclassified }] : []),
+  const allNodes: OrgNodeData[] = [
+    founder,
+    ...leadershipRest,
+    ...extraLeadership,
+    ...columns.flatMap((c) => c.nodes),
   ];
-
-  if (members.length === 0) {
-    return (
-      <div className="mx-auto max-w-[92rem] px-5 md:px-8 lg:px-10">
-        <div className="border-y border-border py-16 text-center">
-          <p className="text-sm text-muted">Team profiles are coming soon.</p>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <>
       <div className="mx-auto max-w-[92rem] px-5 md:px-8 lg:px-10">
         <div className="hidden lg:block border-y border-border py-10">
           <div className="mx-auto max-w-4xl">
-            {founder && <Node member={founder} onClick={() => setSelected(founder)} />}
+            <SlotNode node={founder} onClick={setSelected} />
 
-            {leadershipPair.length > 0 && (
+            <Connector />
+            <div
+              className="grid gap-6"
+              style={{ gridTemplateColumns: `repeat(${leadershipRest.length}, minmax(0, 1fr))` }}
+            >
+              {leadershipRest.map((n) => (
+                <SlotNode key={n.key} node={n} onClick={setSelected} />
+              ))}
+            </div>
+
+            {extraLeadership.length > 0 && (
               <>
                 <Connector />
                 <div
                   className="grid gap-6"
-                  style={{ gridTemplateColumns: `repeat(${leadershipPair.length}, minmax(0, 1fr))` }}
+                  style={{
+                    gridTemplateColumns: `repeat(${Math.min(extraLeadership.length, 3)}, minmax(0, 1fr))`,
+                  }}
                 >
-                  {leadershipPair.map((m) => (
-                    <Node key={m._id} member={m} onClick={() => setSelected(m)} />
-                  ))}
-                </div>
-              </>
-            )}
-
-            {otherLeadership.length > 0 && (
-              <>
-                <Connector />
-                <div
-                  className="grid gap-4"
-                  style={{ gridTemplateColumns: "repeat(2, minmax(0, 1fr))" }}
-                >
-                  {otherLeadership.map((m) => (
-                    <Node key={m._id} member={m} onClick={() => setSelected(m)} />
+                  {extraLeadership.map((n) => (
+                    <SlotNode key={n.key} node={n} onClick={setSelected} />
                   ))}
                 </div>
               </>
             )}
           </div>
 
-          {columns.length > 0 && (
-            <>
-              <Connector />
-              <div className="mx-auto h-px max-w-6xl bg-border" />
-              <div
-                className="mx-auto grid max-w-6xl gap-6 pt-8"
-                style={{ gridTemplateColumns: `repeat(${columns.length}, minmax(0, 1fr))` }}
-              >
-                {columns.map((col, i) => (
-                  <div key={col.label ?? `col-${i}`} className="border-t border-border pt-5">
-                    {col.label && (
-                      <p className="mb-3 min-h-8 text-xs uppercase tracking-[0.2em] text-muted">{col.label}</p>
-                    )}
-                    <MemberList members={col.members} onSelect={setSelected} />
-                  </div>
-                ))}
+          <Connector />
+          <div className="mx-auto h-px max-w-6xl bg-border" />
+
+          <div
+            className="grid gap-6 pt-8"
+            style={{ gridTemplateColumns: `repeat(${columns.length}, minmax(0, 1fr))` }}
+          >
+            {columns.map((col) => (
+              <div key={col.key} className="border-t border-border pt-5">
+                <p className="min-h-8 text-xs uppercase tracking-[0.2em] text-muted">{col.label}</p>
+                <div className="mt-3 space-y-2">
+                  {col.nodes.map((n) => (
+                    <SlotNode key={n.key} node={n} onClick={setSelected} />
+                  ))}
+                </div>
               </div>
-            </>
-          )}
+            ))}
+          </div>
         </div>
 
         <div className="lg:hidden space-y-3 border-y border-border py-6">
-          {members.length === 0 ? (
-            <p className="text-center text-sm text-muted">Team profiles coming soon.</p>
-          ) : (
-            members.map((m) => <Node key={m._id} member={m} onClick={() => setSelected(m)} />)
-          )}
+          {allNodes.map((n) => (
+            <SlotNode key={n.key} node={n} onClick={setSelected} />
+          ))}
         </div>
       </div>
 
-      {selected && selected.status !== "open" && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 px-4" onClick={() => setSelected(null)}>
-          <div className="w-full max-w-md border border-border bg-background p-6 shadow-lg" onClick={(e) => e.stopPropagation()}>
+      {selected && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 px-4"
+          onClick={() => setSelected(null)}
+        >
+          <div
+            className="w-full max-w-md border border-border bg-background p-6 shadow-lg"
+            onClick={(e) => e.stopPropagation()}
+          >
             <div className="flex flex-col items-center text-center">
               {selected.photo ? (
                 <div
