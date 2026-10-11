@@ -17,9 +17,9 @@ interface SeriesMeta {
 }
 
 export const CHART_SERIES: SeriesMeta[] = [
-  { key: "portfolio", label: "W1 Portfolio", color: "#0f0f0f", width: 2.25 },
-  { key: "sp500", label: "S&P 500", color: "#8a9bb0", width: 1.5 },
-  { key: "ftse", label: "FTSE 100", color: "#c2703a", width: 1.5 },
+  { key: "portfolio", label: "W1 Portfolio", color: "#0f0f0f", width: 3 },
+  { key: "sp500", label: "S&P 500", color: "#8a9bb0", width: 2.25 },
+  { key: "ftse", label: "FTSE 100", color: "#c2703a", width: 2.25 },
 ];
 
 type Pt = { x: number; y: number };
@@ -355,7 +355,7 @@ export function PerformanceChart({ series, height }: Props) {
         {activeSeries.map((s) => {
           const pt = endPoint(s.key);
           if (!pt) return null;
-          return <circle key={`end-${s.key}`} cx={pt.x} cy={pt.y} r={2.6} fill={s.color} />;
+          return <circle key={`end-${s.key}`} cx={pt.x} cy={pt.y} r={3.1} fill={s.color} />;
         })}
 
         {hoverPoint && (
