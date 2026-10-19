@@ -25,6 +25,25 @@ const rangeLabels: Record<RangeKey, string> = {
   MAX: "Max",
 };
 
+const APPROACH = [
+  {
+    title: "Objective",
+    body: "Long-term capital growth through high-conviction positions in publicly listed companies.",
+  },
+  {
+    title: "Benchmarks",
+    body: "Measured against the S&P 500 and FTSE 100 on a total-return basis.",
+  },
+  {
+    title: "Process",
+    body: "Ideas are researched, challenged across fundamental, macro and quantitative views, then sized into the portfolio.",
+  },
+  {
+    title: "Discipline",
+    body: "Position limits, diversification and a documented review cadence on every holding.",
+  },
+];
+
 type Tone = "up" | "down" | "neutral";
 
 function Reveal({ children, delay = 0 }: { children: ReactNode; delay?: number }) {
@@ -112,6 +131,14 @@ function RangeToggle({ range, onChange }: { range: RangeKey; onChange: (r: Range
   );
 }
 
+function EmptyState({ children }: { children: ReactNode }) {
+  return (
+    <div className="mt-8 border border-dashed border-border px-6 py-12 text-center">
+      <p className="text-sm text-muted">{children}</p>
+    </div>
+  );
+}
+
 function Loading() {
   return (
     <div className="mx-auto max-w-7xl px-6 py-12 md:px-8 lg:px-10">
@@ -193,6 +220,7 @@ export default function PortfolioView() {
     periodReturns.portfolio != null && periodReturns.sp500 != null
       ? periodReturns.portfolio - periodReturns.sp500
       : null;
+  const positionCount = `${positions.length} position${positions.length === 1 ? "" : "s"}`;
 
   const chartPanel = (
     <div className="pt-8">
@@ -201,7 +229,7 @@ export default function PortfolioView() {
         <Stat
           label="W1 Portfolio"
           value={hasPositions ? fmtPct(periodReturns.portfolio) : "—"}
-          sub={hasPositions ? undefined : "Awaiting first position"}
+          sub={hasPositions ? undefined : "No holdings"}
           tone={
             hasPositions && periodReturns.portfolio != null
               ? periodReturns.portfolio >= 0
@@ -222,98 +250,134 @@ export default function PortfolioView() {
 
   return (
     <div className="mx-auto max-w-7xl px-6 md:px-8 lg:px-10 pb-24">
-      {hasPositions ? (
-        <>
-          <Reveal>
-          <section className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
-            <Stat
-              label="Total Value"
-              value={fmtCurrency(totals.totalValue, currency)}
-              sub={`Cash ${fmtCurrency(totals.cash, currency)} · Invested ${fmtCurrency(totals.totalMarketValue, currency)}`}
-            />
-            <Stat
-              label="Total Return"
-              value={fmtPct(totals.totalReturnPct)}
-              sub={`${totals.totalReturnAbs >= 0 ? "+" : "−"}${fmtCurrency(Math.abs(totals.totalReturnAbs), currency)} since inception`}
-              tone={totals.totalReturnPct >= 0 ? "up" : "down"}
-            />
-            <Stat
-              label="Today"
-              value={totals.dayChange == null ? "—" : `${totals.dayChange >= 0 ? "+" : "−"}${fmtCurrency(Math.abs(totals.dayChange), currency)}`}
-              sub={totals.dayChangePct == null ? "Markets closed" : fmtPct(totals.dayChangePct)}
-              tone={totals.dayChange == null ? "neutral" : totals.dayChange >= 0 ? "up" : "down"}
-            />
-            <Stat
-              label="Cash"
-              value={fmtCurrency(totals.cash, currency)}
-              sub={settings?.name ? settings.name : `Base ${fmtCurrency(totals.startingBalance, currency)}`}
-            />
+      <Reveal>
+        <section className="flex flex-col gap-4 border-b border-border pb-8 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <p className="text-[11px] uppercase tracking-[0.3em] text-muted">Portfolio</p>
+            <h2 className="mt-3 font-serif text-2xl tracking-tight md:text-3xl">
+              {settings?.name || "W1 Portfolio"}
+            </h2>
+          </div>
+          <p className="text-xs uppercase tracking-[0.2em] text-muted tabular-nums">{positionCount}</p>
+        </section>
+      </Reveal>
 
-            <div className="mt-10 flex flex-col gap-5 border-t border-border pt-8 sm:col-span-2 lg:col-span-4 lg:flex-row lg:items-start lg:justify-between">
-              <SectionHeading
-                index="01"
-                title="Performance"
-                note="Fund return compared with the S&P 500 and FTSE 100."
-              />
-              <RangeToggle range={range} onChange={setRange} />
-            </div>
-            <div className="sm:col-span-2 lg:col-span-4">{chartPanel}</div>
-          </section>
-          </Reveal>
+      <Reveal delay={0.03}>
+        <section className="mt-10 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+          <Stat
+            label="Total Value"
+            value={fmtCurrency(totals.totalValue, currency)}
+            sub={`Base ${fmtCurrency(totals.startingBalance, currency)}`}
+          />
+          <Stat
+            label="Total Return"
+            value={fmtPct(totals.totalReturnPct)}
+            sub={`${totals.totalReturnAbs >= 0 ? "+" : "−"}${fmtCurrency(Math.abs(totals.totalReturnAbs), currency)} since inception`}
+            tone={totals.totalReturnPct > 0 ? "up" : totals.totalReturnPct < 0 ? "down" : "neutral"}
+          />
+          <Stat
+            label="Invested"
+            value={fmtCurrency(totals.totalMarketValue, currency)}
+            sub={hasPositions ? positionCount : "Fully in cash"}
+          />
+          <Stat
+            label="Cash"
+            value={fmtCurrency(totals.cash, currency)}
+            sub="Available to deploy"
+          />
+        </section>
+      </Reveal>
 
-          {allocation.length > 0 && (
-            <Reveal delay={0.05}>
-            <section className="mt-16 border-t border-border pt-8">
-              <SectionHeading index="02" title="Allocation" note="Weighting by market value." />
-              <div className="mt-8 space-y-3">
-                {allocation.map((p) => {
-                  const href = p.research?.slug ? `/research/${p.research.slug}` : null;
-                  const row = (
-                    <>
-                      <span
-                        className={`w-20 shrink-0 text-sm font-medium ${
-                          href ? "border-b border-transparent group-hover:border-ink" : ""
-                        }`}
-                      >
-                        {p.ticker}
-                      </span>
-                      <div className="h-1.5 flex-1 overflow-hidden bg-border/40">
-                        <div
-                          className="h-full bg-ink transition-[width] duration-500 ease-out"
-                          style={{ width: `${Math.max(p.weight, 0.5)}%` }}
-                        />
-                      </div>
-                      <span className="w-14 shrink-0 text-right text-sm tabular-nums text-muted">
-                        {p.weight.toFixed(1)}%
-                      </span>
-                    </>
-                  );
-                  return href ? (
-                    <Link key={p._id} href={href} className="group flex items-center gap-4">
-                      {row}
-                    </Link>
-                  ) : (
-                    <div key={p._id} className="group flex items-center gap-4">
-                      {row}
-                    </div>
-                  );
-                })}
+      <Reveal delay={0.06}>
+        <section className="mt-16 border-t border-border pt-8">
+          <h2 className="font-serif text-2xl tracking-tight md:text-3xl">Approach</h2>
+          <div className="mt-8 grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-4">
+            {APPROACH.map((item) => (
+              <div key={item.title}>
+                <h3 className="font-sans text-xs font-medium uppercase tracking-[0.25em] text-muted">
+                  {item.title}
+                </h3>
+                <p className="mt-3 text-sm leading-relaxed text-muted">{item.body}</p>
               </div>
-            </section>
-            </Reveal>
-          )}
+            ))}
+          </div>
+        </section>
+      </Reveal>
 
-          <Reveal delay={0.08}>
-          <section className="mt-16 border-t border-border pt-8">
+      <Reveal delay={0.09}>
+        <section className="mt-16 border-t border-border pt-8">
+          <div className="flex flex-col gap-5 sm:flex-row sm:items-start sm:justify-between">
             <SectionHeading
-              index={allocation.length > 0 ? "03" : "02"}
-              title="Holdings"
+              index="01"
+              title="Performance"
               note={
-                positions.some((p) => p.research?.slug)
-                  ? "Prices refresh about every minute. Select a holding to read its research."
-                  : "Prices refresh about every minute."
+                hasPositions
+                  ? "Fund return compared with the S&P 500 and FTSE 100."
+                  : "Benchmarks shown. The fund line appears with the first position."
               }
             />
+            <RangeToggle range={range} onChange={setRange} />
+          </div>
+          {chartPanel}
+        </section>
+      </Reveal>
+
+      <Reveal delay={0.12}>
+        <section className="mt-16 border-t border-border pt-8">
+          <SectionHeading index="02" title="Allocation" note="Weighting by market value." />
+          {allocation.length > 0 ? (
+            <div className="mt-8 space-y-3">
+              {allocation.map((p) => {
+                const href = p.research?.slug ? `/research/${p.research.slug}` : null;
+                const row = (
+                  <>
+                    <span
+                      className={`w-20 shrink-0 text-sm font-medium ${
+                        href ? "border-b border-transparent group-hover:border-ink" : ""
+                      }`}
+                    >
+                      {p.ticker}
+                    </span>
+                    <div className="h-1.5 flex-1 overflow-hidden bg-border/40">
+                      <div
+                        className="h-full bg-ink transition-[width] duration-500 ease-out"
+                        style={{ width: `${Math.max(p.weight, 0.5)}%` }}
+                      />
+                    </div>
+                    <span className="w-14 shrink-0 text-right text-sm tabular-nums text-muted">
+                      {p.weight.toFixed(1)}%
+                    </span>
+                  </>
+                );
+                return href ? (
+                  <Link key={p._id} href={href} className="group flex items-center gap-4">
+                    {row}
+                  </Link>
+                ) : (
+                  <div key={p._id} className="group flex items-center gap-4">
+                    {row}
+                  </div>
+                );
+              })}
+            </div>
+          ) : (
+            <EmptyState>No positions yet — allocation appears with the first holding.</EmptyState>
+          )}
+        </section>
+      </Reveal>
+
+      <Reveal delay={0.15}>
+        <section className="mt-16 border-t border-border pt-8">
+          <SectionHeading
+            index="03"
+            title="Holdings"
+            note={
+              hasPositions
+                ? "Prices refresh about every minute. Select a holding to read its research."
+                : "Each position will link to the research behind it."
+            }
+          />
+          {hasPositions ? (
             <div className="mt-8 overflow-x-auto">
               <table className="w-full min-w-[760px] text-sm">
                 <thead>
@@ -384,57 +448,11 @@ export default function PortfolioView() {
                 </tbody>
               </table>
             </div>
-          </section>
-          </Reveal>
-        </>
-      ) : (
-        <>
-          <Reveal>
-          <section className="border-y border-border py-10 md:py-14">
-            <p className="text-[11px] uppercase tracking-[0.3em] text-muted">Pre-launch</p>
-            <h2 className="mt-4 max-w-3xl font-serif text-3xl leading-[1.1] tracking-tight md:text-5xl">
-              The fund is being assembled. The portfolio opens with its first position.
-            </h2>
-            <p className="mt-5 max-w-2xl text-base leading-relaxed text-muted">
-              Nothing has been invested yet, so there are no holdings to report. Until the first
-              position is placed, here is how the markets we benchmark against are moving.
-            </p>
-          </section>
-          </Reveal>
-
-          <Reveal delay={0.05}>
-          <section className="pt-12">
-            <div className="flex flex-col gap-5 sm:flex-row sm:items-start sm:justify-between">
-              <SectionHeading
-                index="01"
-                title="Market benchmarks"
-                note="The fund's own line appears once it begins investing."
-              />
-              <RangeToggle range={range} onChange={setRange} />
-            </div>
-            {chartPanel}
-          </section>
-          </Reveal>
-
-          <Reveal delay={0.1}>
-          <section className="mt-16 border-t border-border pt-8">
-            <SectionHeading index="02" title="What will be published here" />
-            <div className="mt-8 grid grid-cols-1 gap-8 sm:grid-cols-3">
-              {[
-                { t: "Total value", d: "Fund value broken down into cash and invested capital, marked to live prices." },
-                { t: "Allocation", d: "Positioning by weight across every holding in the book." },
-                { t: "Attribution", d: "Fund performance measured against the S&P 500 and FTSE 100." },
-              ].map((c) => (
-                <div key={c.t} className="border-t border-border pt-5">
-                  <h3 className="font-serif text-xl tracking-tight">{c.t}</h3>
-                  <p className="mt-2 text-sm leading-relaxed text-muted">{c.d}</p>
-                </div>
-              ))}
-            </div>
-          </section>
-          </Reveal>
-        </>
-      )}
+          ) : (
+            <EmptyState>No open positions yet.</EmptyState>
+          )}
+        </section>
+      </Reveal>
     </div>
   );
 }
