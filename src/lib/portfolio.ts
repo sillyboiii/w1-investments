@@ -12,6 +12,12 @@ export interface PortfolioSettings {
   currency?: string;
 }
 
+export interface PortfolioResearch {
+  _id?: string;
+  title?: string;
+  slug?: string;
+}
+
 export interface PortfolioPosition {
   _id: string;
   ticker: string;
@@ -20,6 +26,7 @@ export interface PortfolioPosition {
   costBasis?: number;
   purchaseDate?: string;
   notes?: string;
+  research?: PortfolioResearch | null;
   price: number | null;
   prevClose: number | null;
   marketValue: number | null;

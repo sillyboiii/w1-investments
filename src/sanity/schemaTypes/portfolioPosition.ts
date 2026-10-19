@@ -12,6 +12,13 @@ export const portfolioPositionType = defineType({
     defineField({ name: "purchaseDate", title: "Purchase Date", type: "date" }),
     defineField({ name: "status", title: "Status", type: "string", options: { list: [{title:"Active", value:"active"}, {title:"Closed", value:"closed"}]}, initialValue: "active" }),
     defineField({ name: "notes", title: "Notes", type: "text", rows: 2 }),
+    defineField({
+      name: "research",
+      title: "Research / thesis",
+      description: "Link the research note that justifies this position.",
+      type: "reference",
+      to: [{ type: "research" }],
+    }),
     defineField({ name: "order", title: "Order", type: "number", initialValue: 0 }),
   ],
   preview: {

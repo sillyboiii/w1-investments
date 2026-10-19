@@ -32,7 +32,8 @@ export const researchBySlugQuery = groq`
     valuation,
     sources,
     body,
-    "reportUrl": report.asset->url
+    "reportUrl": report.asset->url,
+    "modelUrl": model.asset->url
   }
 `;
 
@@ -60,7 +61,8 @@ export const portfolioPositionsQuery = groq`
     shares,
     costBasis,
     purchaseDate,
-    notes
+    notes,
+    research -> { _id, title, "slug": slug.current }
   }
 `;
 

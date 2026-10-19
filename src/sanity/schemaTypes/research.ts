@@ -60,6 +60,13 @@ export const researchType = defineType({
       type: "file",
       options: { accept: ".pdf" },
     }),
+    defineField({
+      name: "model",
+      title: "Financial model (spreadsheet)",
+      description: "The valuation/DCF model that backs this thesis. Shown as a download.",
+      type: "file",
+      options: { accept: ".xlsx,.xls,.csv,.pdf" },
+    }),
     defineField({ name: "executiveSummary", title: "Executive summary", type: "text", rows: 5 }),
     defineField({ name: "thesis", title: "Thesis", type: "text", rows: 5 }),
     defineField({ name: "catalysts", title: "Catalysts", type: "text", rows: 4 }),

@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState, type ReactNode } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { PerformanceChart } from "@/components/ui/PerformanceChart";
 import {
@@ -128,6 +129,7 @@ function Loading() {
 }
 
 export default function PortfolioView() {
+  const router = useRouter();
   const [data, setData] = useState<PortfolioApiData | null>(null);
   const [loading, setLoading] = useState(true);
   const [range, setRange] = useState<RangeKey>("1Y");
@@ -264,20 +266,38 @@ export default function PortfolioView() {
             <section className="mt-16 border-t border-border pt-8">
               <SectionHeading index="02" title="Allocation" note="Weighting by market value." />
               <div className="mt-8 space-y-3">
-                {allocation.map((p) => (
-                  <div key={p._id} className="flex items-center gap-4">
-                    <span className="w-20 shrink-0 text-sm font-medium">{p.ticker}</span>
-                    <div className="h-1.5 flex-1 overflow-hidden bg-border/40">
-                      <div
-                        className="h-full bg-ink transition-[width] duration-500 ease-out"
-                        style={{ width: `${Math.max(p.weight, 0.5)}%` }}
-                      />
+                {allocation.map((p) => {
+                  const href = p.research?.slug ? `/research/${p.research.slug}` : null;
+                  const row = (
+                    <>
+                      <span
+                        className={`w-20 shrink-0 text-sm font-medium ${
+                          href ? "border-b border-transparent group-hover:border-ink" : ""
+                        }`}
+                      >
+                        {p.ticker}
+                      </span>
+                      <div className="h-1.5 flex-1 overflow-hidden bg-border/40">
+                        <div
+                          className="h-full bg-ink transition-[width] duration-500 ease-out"
+                          style={{ width: `${Math.max(p.weight, 0.5)}%` }}
+                        />
+                      </div>
+                      <span className="w-14 shrink-0 text-right text-sm tabular-nums text-muted">
+                        {p.weight.toFixed(1)}%
+                      </span>
+                    </>
+                  );
+                  return href ? (
+                    <Link key={p._id} href={href} className="group flex items-center gap-4">
+                      {row}
+                    </Link>
+                  ) : (
+                    <div key={p._id} className="group flex items-center gap-4">
+                      {row}
                     </div>
-                    <span className="w-14 shrink-0 text-right text-sm tabular-nums text-muted">
-                      {p.weight.toFixed(1)}%
-                    </span>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </section>
             </Reveal>
@@ -288,7 +308,11 @@ export default function PortfolioView() {
             <SectionHeading
               index={allocation.length > 0 ? "03" : "02"}
               title="Holdings"
-              note="Prices refresh about every minute."
+              note={
+                positions.some((p) => p.research?.slug)
+                  ? "Prices refresh about every minute. Select a holding to read its research."
+                  : "Prices refresh about every minute."
+              }
             />
             <div className="mt-8 overflow-x-auto">
               <table className="w-full min-w-[760px] text-sm">
@@ -308,10 +332,36 @@ export default function PortfolioView() {
                 <tbody>
                   {positions.map((p) => {
                     const up = (p.unrealized ?? 0) >= 0;
+                    const href = p.research?.slug ? `/research/${p.research.slug}` : null;
                     return (
-                      <tr key={p._id} className="border-b border-border/50">
-                        <td className="py-3 pr-4 font-medium">{p.ticker}</td>
-                        <td className="py-3 pr-4 text-muted">{p.name || "—"}</td>
+                      <tr
+                        key={p._id}
+                        onClick={href ? () => router.push(href) : undefined}
+                        className={`border-b border-border/50 ${
+                          href ? "cursor-pointer transition-colors hover:bg-border/20" : ""
+                        }`}
+                      >
+                        <td className="py-3 pr-4 font-medium">
+                          {href ? (
+                            <Link
+                              href={href}
+                              className="border-b border-transparent hover:border-ink"
+                              onClick={(e) => e.stopPropagation()}
+                            >
+                              {p.ticker}
+                            </Link>
+                          ) : (
+                            p.ticker
+                          )}
+                        </td>
+                        <td className="py-3 pr-4 text-muted">
+                          {p.name || "—"}
+                          {href ? (
+                            <span className="ml-2 whitespace-nowrap text-xs text-ink/60">
+                              Read thesis →
+                            </span>
+                          ) : null}
+                        </td>
                         <td className="py-3 pr-4 text-right tabular-nums">{p.weight.toFixed(1)}%</td>
                         <td className="py-3 pr-4 text-right tabular-nums">{p.shares.toLocaleString()}</td>
                         <td className="py-3 pr-4 text-right tabular-nums">{fmtCurrency(p.costBasis, currency, 2)}</td>

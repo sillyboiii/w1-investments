@@ -30,6 +30,7 @@ interface RawPosition {
   costBasis?: number;
   purchaseDate?: string;
   notes?: string;
+  research?: { _id?: string; title?: string; slug?: string } | null;
 }
 
 function monthsAgoIso(months: number): string {
@@ -265,6 +266,7 @@ export async function GET() {
         costBasis,
         purchaseDate: p.purchaseDate,
         notes: p.notes,
+        research: p.research ?? null,
         price,
         prevClose,
         marketValue,

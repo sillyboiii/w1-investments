@@ -27,6 +27,7 @@ interface ResearchDocument {
   sources?: string;
   body?: PortableTextBlock[];
   reportUrl?: string;
+  modelUrl?: string;
 }
 
 async function getResearch(slug: string): Promise<ResearchDocument | null> {
@@ -81,13 +82,25 @@ export default async function ResearchArticlePage({ params }: ResearchPageProps)
                   {research.abstract}
                 </p>
               )}
-              {research.reportUrl && (
-                <a
-                  href={research.reportUrl}
-                  className="mt-8 inline-block border-b border-border pb-1 text-sm hover:border-ink"
-                >
-                  Download PDF report
-                </a>
+              {(research.reportUrl || research.modelUrl) && (
+                <div className="mt-8 flex flex-wrap items-center gap-x-8 gap-y-3">
+                  {research.reportUrl && (
+                    <a
+                      href={research.reportUrl}
+                      className="inline-block border-b border-border pb-1 text-sm hover:border-ink"
+                    >
+                      Download PDF report
+                    </a>
+                  )}
+                  {research.modelUrl && (
+                    <a
+                      href={research.modelUrl}
+                      className="inline-block border-b border-border pb-1 text-sm hover:border-ink"
+                    >
+                      Download financial model
+                    </a>
+                  )}
+                </div>
               )}
             </div>
 
