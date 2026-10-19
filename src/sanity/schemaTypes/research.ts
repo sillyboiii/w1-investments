@@ -67,18 +67,35 @@ export const researchType = defineType({
       type: "file",
       options: { accept: ".xlsx,.xls,.csv,.pdf" },
     }),
-    defineField({ name: "executiveSummary", title: "Executive summary", type: "text", rows: 5 }),
-    defineField({ name: "thesis", title: "Thesis", type: "text", rows: 5 }),
-    defineField({ name: "catalysts", title: "Catalysts", type: "text", rows: 4 }),
-    defineField({ name: "risks", title: "Risks", type: "text", rows: 4 }),
-    defineField({ name: "valuation", title: "Valuation discussion", type: "text", rows: 5 }),
-    defineField({ name: "sources", title: "Sources / references", type: "text", rows: 5 }),
     defineField({
       name: "body",
-      title: "Long-form article body",
+      title: "Body",
+      description: "The full research note. Use headings to structure it.",
       type: "array",
       of: [
-        { type: "block" },
+        {
+          type: "block",
+          styles: [
+            { title: "Normal", value: "normal" },
+            { title: "H2", value: "h2" },
+            { title: "H3", value: "h3" },
+            { title: "Quote", value: "blockquote" },
+          ],
+          marks: {
+            decorators: [
+              { title: "Bold", value: "strong" },
+              { title: "Italic", value: "em" },
+            ],
+            annotations: [
+              {
+                name: "link",
+                type: "object",
+                title: "Link",
+                fields: [{ name: "href", type: "url", title: "URL" }],
+              },
+            ],
+          },
+        },
         { type: "image", options: { hotspot: true } },
       ],
     }),

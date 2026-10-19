@@ -25,12 +25,6 @@ export const researchBySlugQuery = groq`
     publishedAt,
     abstract,
     ticker,
-    executiveSummary,
-    thesis,
-    catalysts,
-    risks,
-    valuation,
-    sources,
     body,
     "reportUrl": report.asset->url,
     "modelUrl": model.asset->url

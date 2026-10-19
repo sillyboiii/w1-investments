@@ -19,12 +19,6 @@ interface ResearchDocument {
   publishedAt?: string;
   abstract?: string;
   ticker?: string;
-  executiveSummary?: string;
-  thesis?: string;
-  catalysts?: string;
-  risks?: string;
-  valuation?: string;
-  sources?: string;
   body?: PortableTextBlock[];
   reportUrl?: string;
   modelUrl?: string;
@@ -42,16 +36,6 @@ function formatDate(date?: string) {
     month: "short",
     year: "numeric",
   }).format(new Date(date));
-}
-
-function ResearchSection({ title, children }: { title: string; children?: string }) {
-  if (!children) return null;
-  return (
-    <section className="border-t border-border pt-8">
-      <h2 className="text-2xl md:text-3xl font-serif tracking-tight mb-4">{title}</h2>
-      <p className="text-muted leading-relaxed whitespace-pre-line">{children}</p>
-    </section>
-  );
 }
 
 export default async function ResearchArticlePage({ params }: ResearchPageProps) {
@@ -104,20 +88,12 @@ export default async function ResearchArticlePage({ params }: ResearchPageProps)
               )}
             </div>
 
-            <div className="space-y-10 pb-16 md:pb-24">
-              <ResearchSection title="Executive Summary">{research.executiveSummary}</ResearchSection>
-              <ResearchSection title="Thesis">{research.thesis}</ResearchSection>
-              <ResearchSection title="Catalysts">{research.catalysts}</ResearchSection>
-              <ResearchSection title="Risks">{research.risks}</ResearchSection>
-              <ResearchSection title="Valuation">{research.valuation}</ResearchSection>
-
+            <div className="pb-16 md:pb-24">
               {research.body && research.body.length > 0 && (
-                <section className="border-t border-border pt-8 prose prose-neutral max-w-none prose-headings:font-serif prose-p:text-muted prose-p:leading-relaxed">
+                <section className="border-t border-border pt-10 prose prose-neutral max-w-none prose-headings:font-serif prose-p:text-muted prose-p:leading-relaxed prose-a:text-ink prose-a:underline">
                   <PortableText value={research.body} />
                 </section>
               )}
-
-              <ResearchSection title="Sources">{research.sources}</ResearchSection>
             </div>
           </div>
         </article>
