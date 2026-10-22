@@ -161,20 +161,6 @@ export default async function ResearchArticlePage({ params }: ResearchPageProps)
               )}
             </div>
 
-            {research.coverImage && (
-              <div className="mb-12 overflow-hidden border border-border bg-border/20">
-                <Image
-                  src={urlFor(research.coverImage).width(1600).url()}
-                  alt={research.title}
-                  width={coverWidth}
-                  height={coverHeight}
-                  priority
-                  sizes="(min-width: 1024px) 960px, 100vw"
-                  className="h-auto w-full"
-                />
-              </div>
-            )}
-
             {research.reportUrl && (
               <ReportPreview url={research.reportUrl} title={research.title} />
             )}

@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
+import { Reveal } from "@/components/ui/Reveal";
 import { PerformanceChart } from "@/components/ui/PerformanceChart";
 import {
   RANGES,
@@ -45,19 +46,6 @@ const APPROACH = [
 ];
 
 type Tone = "up" | "down" | "neutral";
-
-function Reveal({ children, delay = 0 }: { children: ReactNode; delay?: number }) {
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 18 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, margin: "-80px" }}
-      transition={{ duration: 0.55, delay, ease: [0.22, 1, 0.36, 1] }}
-    >
-      {children}
-    </motion.div>
-  );
-}
 
 function Stat({
   label,
@@ -321,7 +309,7 @@ export default function PortfolioView() {
         </section>
       </Reveal>
 
-      <Reveal delay={0.03}>
+      <Reveal>
         <section className="mt-10 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
           <Stat
             label="Total Value"
@@ -347,7 +335,7 @@ export default function PortfolioView() {
         </section>
       </Reveal>
 
-      <Reveal delay={0.06}>
+      <Reveal>
         <section className="mt-16 border-t border-border pt-8">
           <h2 className="font-serif text-2xl tracking-tight md:text-3xl">Approach</h2>
           <div className="mt-8 grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-4">
@@ -363,7 +351,7 @@ export default function PortfolioView() {
         </section>
       </Reveal>
 
-      <Reveal delay={0.09}>
+      <Reveal>
         <section className="mt-16 border-t border-border pt-8">
           <div className="flex flex-col gap-5 sm:flex-row sm:items-start sm:justify-between">
             <SectionHeading
@@ -381,7 +369,7 @@ export default function PortfolioView() {
         </section>
       </Reveal>
 
-      <Reveal delay={0.12}>
+      <Reveal>
         <section className="mt-16 border-t border-border pt-8">
           <SectionHeading
             index="02"
@@ -430,7 +418,7 @@ export default function PortfolioView() {
         </section>
       </Reveal>
 
-      <Reveal delay={0.15}>
+      <Reveal>
         <section className="mt-16 border-t border-border pt-8">
           <SectionHeading
             index="03"
@@ -519,7 +507,7 @@ export default function PortfolioView() {
       </Reveal>
 
       {closedPositions.length > 0 && (
-        <Reveal delay={0.18}>
+        <Reveal>
           <section className="mt-16 border-t border-border pt-8">
             <SectionHeading
               index="04"
