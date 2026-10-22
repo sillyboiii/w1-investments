@@ -18,6 +18,8 @@ export interface PortfolioResearch {
   slug?: string;
 }
 
+export type PositionStatus = "active" | "closed";
+
 export interface PortfolioPosition {
   _id: string;
   ticker: string;
@@ -27,20 +29,30 @@ export interface PortfolioPosition {
   purchaseDate?: string;
   notes?: string;
   research?: PortfolioResearch | null;
+  status: PositionStatus;
+  closePrice: number | null;
+  closedAt: string | null;
   price: number | null;
   prevClose: number | null;
   marketValue: number | null;
   costTotal: number;
   unrealized: number | null;
   unrealizedPct: number | null;
+  realized: number | null;
+  realizedPct: number | null;
   dayChange: number | null;
   dayChangePct: number | null;
   weight: number;
 }
 
 export interface PortfolioTotals {
+  capital: number;
   cash: number;
+  deployed: number;
+  openMarketValue: number;
   totalMarketValue: number;
+  unrealizedTotal: number;
+  realizedTotal: number;
   totalValue: number;
   startingBalance: number;
   totalReturnPct: number;
@@ -61,9 +73,11 @@ export interface PortfolioApiData {
   reason?: string;
   error?: string;
   hasPositions?: boolean;
+  hasClosedPositions?: boolean;
   hasSettings?: boolean;
   settings?: PortfolioSettings | null;
   positions?: PortfolioPosition[];
+  closedPositions?: PortfolioPosition[];
   totals?: PortfolioTotals;
   performance?: PerformancePoint[];
   currency?: string;

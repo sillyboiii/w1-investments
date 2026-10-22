@@ -17,15 +17,15 @@ export const researchListQuery = groq`
 
 export const researchBySlugQuery = groq`
   *[_type == "research" && slug.current == $slug][0] {
-    _id,
-    title,
-    "slug": slug.current,
-    category,
-    analyst,
-    publishedAt,
-    abstract,
-    ticker,
-    body,
+    ...,
+    body[]{
+      ...,
+      _type == "image" => {
+        ...,
+        "dimensions": asset->metadata.dimensions
+      }
+    },
+    "coverDimensions": coverImage.asset->metadata.dimensions,
     "reportUrl": report.asset->url,
     "modelUrl": model.asset->url
   }
@@ -48,13 +48,16 @@ export const teamMembersQuery = groq`
 `;
 
 export const portfolioPositionsQuery = groq`
-  *[_type == "portfolioPosition" && status == "active"] | order(order asc, ticker asc) {
+  *[_type == "portfolioPosition"] | order(status desc, order asc, ticker asc) {
     _id,
     ticker,
     name,
     shares,
     costBasis,
     purchaseDate,
+    status,
+    closePrice,
+    closedAt,
     notes,
     research -> { _id, title, "slug": slug.current }
   }

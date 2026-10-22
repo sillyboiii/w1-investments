@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState, type ReactNode } from "react";
+import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
@@ -159,26 +159,46 @@ export default function PortfolioView() {
   const router = useRouter();
   const [data, setData] = useState<PortfolioApiData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [range, setRange] = useState<RangeKey>("1Y");
 
+  const load = useCallback(async () => {
+    try {
+      const response = await fetch("/api/portfolio", { cache: "no-store" });
+      const json = (await response.json()) as PortfolioApiData;
+      setData(json);
+    } catch {
+      setData((prev) => prev ?? { ok: false, error: "failed" });
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
+  }, []);
+
   useEffect(() => {
-    let active = true;
-    fetch("/api/portfolio")
-      .then((r) => r.json())
-      .then((json: PortfolioApiData) => {
-        if (active) {
-          setData(json);
-          setLoading(false);
-        }
-      })
-      .catch(() => {
-        if (active) {
-          setData({ ok: false, error: "failed" });
-          setLoading(false);
-        }
-      });
+    let cancelled = false;
+
+    const run = () =>
+      fetch("/api/portfolio", { cache: "no-store" })
+        .then((response) => response.json() as Promise<PortfolioApiData>)
+        .then((json) => {
+          if (!cancelled) setData(json);
+        })
+        .catch(() => {
+          if (!cancelled) setData((prev) => prev ?? { ok: false, error: "failed" });
+        })
+        .finally(() => {
+          if (!cancelled) {
+            setLoading(false);
+            setRefreshing(false);
+          }
+        });
+
+    run();
+    const interval = setInterval(run, 60_000);
     return () => {
-      active = false;
+      cancelled = true;
+      clearInterval(interval);
     };
   }, []);
 
@@ -212,15 +232,39 @@ export default function PortfolioView() {
     );
   }
 
-  const { totals, positions = [], settings } = data;
+  const { totals, positions = [], closedPositions = [], settings } = data;
   const currency = "USD";
   const hasPositions = Boolean(data.hasPositions) && positions.length > 0;
-  const allocation = [...positions].sort((a, b) => b.weight - a.weight);
+  const cashWeight = totals.totalValue > 0 ? (totals.cash / totals.totalValue) * 100 : 0;
+  const allocation = [
+    ...positions.map((p) => ({
+      key: p._id,
+      label: p.ticker || "—",
+      weight: p.weight,
+      href: p.research?.slug ? `/research/${p.research.slug}` : null,
+      isCash: false,
+    })),
+    ...(totals.cash > 0
+      ? [{ key: "__cash", label: "Cash", weight: cashWeight, href: null, isCash: true }]
+      : []),
+  ].sort((a, b) => b.weight - a.weight);
   const alpha =
     periodReturns.portfolio != null && periodReturns.sp500 != null
       ? periodReturns.portfolio - periodReturns.sp500
       : null;
   const positionCount = `${positions.length} position${positions.length === 1 ? "" : "s"}`;
+  const signed = (n: number) => `${n >= 0 ? "+" : "−"}${fmtCurrency(Math.abs(n), currency)}`;
+  const updatedLabel = data.updatedAt
+    ? new Intl.DateTimeFormat("en-GB", {
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit",
+      }).format(new Date(data.updatedAt))
+    : null;
+  const refresh = () => {
+    setRefreshing(true);
+    load();
+  };
 
   const chartPanel = (
     <div className="pt-8">
@@ -258,7 +302,22 @@ export default function PortfolioView() {
               {settings?.name || "W1 Portfolio"}
             </h2>
           </div>
-          <p className="text-xs uppercase tracking-[0.2em] text-muted tabular-nums">{positionCount}</p>
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
+            <p className="text-xs uppercase tracking-[0.2em] text-muted tabular-nums">
+              {positionCount}
+            </p>
+            {updatedLabel ? (
+              <p className="text-xs text-muted tabular-nums">Prices as of {updatedLabel}</p>
+            ) : null}
+            <button
+              type="button"
+              onClick={refresh}
+              disabled={refreshing}
+              className="border border-border px-2.5 py-1 text-xs text-muted transition-colors hover:border-ink hover:text-ink disabled:opacity-50"
+            >
+              {refreshing ? "Refreshing…" : "Refresh"}
+            </button>
+          </div>
         </section>
       </Reveal>
 
@@ -267,23 +326,23 @@ export default function PortfolioView() {
           <Stat
             label="Total Value"
             value={fmtCurrency(totals.totalValue, currency)}
-            sub={`Base ${fmtCurrency(totals.startingBalance, currency)}`}
+            sub={`Capital ${fmtCurrency(totals.capital, currency)}`}
           />
           <Stat
             label="Total Return"
             value={fmtPct(totals.totalReturnPct)}
-            sub={`${totals.totalReturnAbs >= 0 ? "+" : "−"}${fmtCurrency(Math.abs(totals.totalReturnAbs), currency)} since inception`}
+            sub={`${signed(totals.unrealizedTotal)} open · ${signed(totals.realizedTotal)} realised`}
             tone={totals.totalReturnPct > 0 ? "up" : totals.totalReturnPct < 0 ? "down" : "neutral"}
           />
           <Stat
             label="Invested"
-            value={fmtCurrency(totals.totalMarketValue, currency)}
-            sub={hasPositions ? positionCount : "Fully in cash"}
+            value={fmtCurrency(totals.openMarketValue, currency)}
+            sub={hasPositions ? `${positionCount} · ${fmtCurrency(totals.deployed, currency)} at cost` : "Fully in cash"}
           />
           <Stat
             label="Cash"
             value={fmtCurrency(totals.cash, currency)}
-            sub="Available to deploy"
+            sub={`${cashWeight.toFixed(1)}% of portfolio`}
           />
         </section>
       </Reveal>
@@ -324,37 +383,42 @@ export default function PortfolioView() {
 
       <Reveal delay={0.12}>
         <section className="mt-16 border-t border-border pt-8">
-          <SectionHeading index="02" title="Allocation" note="Weighting by market value." />
+          <SectionHeading
+            index="02"
+            title="Allocation"
+            note="Share of total portfolio value, including cash."
+          />
           {allocation.length > 0 ? (
             <div className="mt-8 space-y-3">
-              {allocation.map((p) => {
-                const href = p.research?.slug ? `/research/${p.research.slug}` : null;
+              {allocation.map((item) => {
                 const row = (
                   <>
                     <span
                       className={`w-20 shrink-0 text-sm font-medium ${
-                        href ? "border-b border-transparent group-hover:border-ink" : ""
-                      }`}
+                        item.href ? "border-b border-transparent group-hover:border-ink" : ""
+                      } ${item.isCash ? "text-muted" : ""}`}
                     >
-                      {p.ticker}
+                      {item.label}
                     </span>
                     <div className="h-1.5 flex-1 overflow-hidden bg-border/40">
                       <div
-                        className="h-full bg-ink transition-[width] duration-500 ease-out"
-                        style={{ width: `${Math.max(p.weight, 0.5)}%` }}
+                        className={`h-full transition-[width] duration-500 ease-out ${
+                          item.isCash ? "bg-ink/30" : "bg-ink"
+                        }`}
+                        style={{ width: `${Math.max(item.weight, 0.5)}%` }}
                       />
                     </div>
                     <span className="w-14 shrink-0 text-right text-sm tabular-nums text-muted">
-                      {p.weight.toFixed(1)}%
+                      {item.weight.toFixed(1)}%
                     </span>
                   </>
                 );
-                return href ? (
-                  <Link key={p._id} href={href} className="group flex items-center gap-4">
+                return item.href ? (
+                  <Link key={item.key} href={item.href} className="group flex items-center gap-4">
                     {row}
                   </Link>
                 ) : (
-                  <div key={p._id} className="group flex items-center gap-4">
+                  <div key={item.key} className="group flex items-center gap-4">
                     {row}
                   </div>
                 );
@@ -430,7 +494,7 @@ export default function PortfolioView() {
                         <td className="py-3 pr-4 text-right tabular-nums">{p.shares.toLocaleString()}</td>
                         <td className="py-3 pr-4 text-right tabular-nums">{fmtCurrency(p.costBasis, currency, 2)}</td>
                         <td className="py-3 pr-4 text-right tabular-nums">{fmtCurrency(p.price, currency, 2)}</td>
-                        <td className={`py-3 pr-4 text-right tabular-nums ${(p.dayChangePct ?? 0) >= 0 ? "text-emerald-700" : "text-red-700"}`}>
+                        <td className={`py-3 pr-4 text-right tabular-nums ${p.dayChangePct == null ? "text-muted" : p.dayChangePct >= 0 ? "text-emerald-700" : "text-red-700"}`}>
                           {fmtPct(p.dayChangePct)}
                         </td>
                         <td className="py-3 pr-4 text-right tabular-nums">{fmtCurrency(p.marketValue, currency)}</td>
@@ -453,6 +517,73 @@ export default function PortfolioView() {
           )}
         </section>
       </Reveal>
+
+      {closedPositions.length > 0 && (
+        <Reveal delay={0.18}>
+          <section className="mt-16 border-t border-border pt-8">
+            <SectionHeading
+              index="04"
+              title="Closed positions"
+              note="Realised profit or loss stays in the portfolio's cash."
+            />
+            <div className="mt-8 overflow-x-auto">
+              <table className="w-full min-w-[720px] text-sm">
+                <thead>
+                  <tr className="border-b border-border text-left text-[11px] uppercase tracking-widest text-muted">
+                    <th className="py-3 pr-4 font-medium">Ticker</th>
+                    <th className="py-3 pr-4 font-medium">Name</th>
+                    <th className="py-3 pr-4 font-medium text-right">Shares</th>
+                    <th className="py-3 pr-4 font-medium text-right">Avg Cost</th>
+                    <th className="py-3 pr-4 font-medium text-right">Exit</th>
+                    <th className="py-3 pr-4 font-medium">Closed</th>
+                    <th className="py-3 pr-4 font-medium text-right">Realised</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {closedPositions.map((p) => {
+                    const up = (p.realized ?? 0) >= 0;
+                    return (
+                      <tr key={p._id} className="border-b border-border/50">
+                        <td className="py-3 pr-4 font-medium">{p.ticker}</td>
+                        <td className="py-3 pr-4 text-muted">{p.name || "—"}</td>
+                        <td className="py-3 pr-4 text-right tabular-nums">
+                          {p.shares.toLocaleString()}
+                        </td>
+                        <td className="py-3 pr-4 text-right tabular-nums">
+                          {fmtCurrency(p.costBasis, currency, 2)}
+                        </td>
+                        <td className="py-3 pr-4 text-right tabular-nums">
+                          {fmtCurrency(p.closePrice, currency, 2)}
+                        </td>
+                        <td className="py-3 pr-4 text-muted tabular-nums">{p.closedAt || "—"}</td>
+                        <td
+                          className={`py-3 pr-4 text-right tabular-nums ${
+                            up ? "text-emerald-700" : "text-red-700"
+                          }`}
+                        >
+                          {fmtPct(p.realizedPct)}
+                          <span className="ml-1 text-xs text-muted">
+                            {p.realized != null ? `(${signed(p.realized)})` : ""}
+                          </span>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+            <p className="mt-4 text-xs text-muted tabular-nums">
+              Total realised:{" "}
+              <span
+                className={totals.realizedTotal >= 0 ? "text-emerald-700" : "text-red-700"}
+              >
+                {signed(totals.realizedTotal)}
+              </span>{" "}
+              — already included in cash.
+            </p>
+          </section>
+        </Reveal>
+      )}
     </div>
   );
 }

@@ -4,7 +4,7 @@ import { portfolioPositionsQuery, portfolioSettingsQuery } from "@/sanity/lib/qu
 import { isSanityConfigured } from "@/sanity/env";
 import type { PerformancePoint, PortfolioPosition, PortfolioSettings } from "@/lib/portfolio";
 
-export const revalidate = 60;
+export const dynamic = "force-dynamic";
 export const maxDuration = 30;
 
 const SP500_SYMBOL = "^GSPC";
@@ -29,6 +29,9 @@ interface RawPosition {
   shares?: number;
   costBasis?: number;
   purchaseDate?: string;
+  status?: string;
+  closePrice?: number;
+  closedAt?: string;
   notes?: string;
   research?: { _id?: string; title?: string; slug?: string } | null;
 }
@@ -41,7 +44,7 @@ function monthsAgoIso(months: number): string {
 
 // Index proxies available on Nasdaq (keyless fallback when Yahoo rate-limits).
 const NASDAQ_PROXY: Record<string, string> = { "^GSPC": "SPY", "^FTSE": "EWU" };
-const CACHE_TTL_MS = 5 * 60 * 1000;
+const CACHE_TTL_MS = 60 * 1000;
 const dataCache = new Map<string, { data: SymbolData; at: number }>();
 
 async function fetchYahoo(symbol: string): Promise<SymbolData | null> {
@@ -70,7 +73,14 @@ async function fetchYahoo(symbol: string): Promise<SymbolData | null> {
       const prev = series.length > 1 ? series[series.length - 2] : null;
       const metaPrice = result?.meta?.regularMarketPrice;
       const price = typeof metaPrice === "number" && Number.isFinite(metaPrice) ? metaPrice : last.c;
-      return { series, price, prevClose: prev ? prev.c : null };
+      const metaPrev = result?.meta?.previousClose ?? result?.meta?.chartPreviousClose;
+      const prevClose =
+        typeof metaPrev === "number" && Number.isFinite(metaPrev)
+          ? metaPrev
+          : prev
+            ? prev.c
+            : null;
+      return { series, price, prevClose };
     } catch {
       // try next host
     } finally {
@@ -82,11 +92,7 @@ async function fetchYahoo(symbol: string): Promise<SymbolData | null> {
 
 async function fetchNasdaq(symbol: string): Promise<SymbolData | null> {
   const isIndex = symbol.startsWith("^");
-  const nasdaqSymbol = isIndex
-    ? NASDAQ_PROXY[symbol]
-    : symbol.includes(".")
-      ? undefined
-      : symbol;
+  const nasdaqSymbol = isIndex ? NASDAQ_PROXY[symbol] : symbol.includes(".") ? undefined : symbol;
   if (!nasdaqSymbol) return null;
   const assetclass = isIndex ? "etf" : "stocks";
   const to = new Date().toISOString().slice(0, 10);
@@ -156,10 +162,24 @@ function dateToSec(iso?: string): number | null {
   return Number.isNaN(ms) ? null : ms / 1000;
 }
 
+function isClosed(p: RawPosition): boolean {
+  return p.status === "closed";
+}
+
+/**
+ * Portfolio value over time.
+ *
+ *   value(t) = capital + Σ unrealised(t) + Σ realised(t)
+ *
+ * A position contributes nothing before it is bought, its mark-to-market gain
+ * while it is open, and its frozen realised gain after it is closed. This is
+ * the same identity used for the live totals below, so the chart always ends
+ * at the same value as the holdings table.
+ */
 function buildPerformance(
   positions: RawPosition[],
   map: Map<string, SymbolData>,
-  cash: number,
+  capital: number,
 ): PerformancePoint[] {
   const datesSet = new Set<number>();
   for (const s of map.values()) for (const p of s.series) datesSet.add(p.t);
@@ -184,19 +204,28 @@ function buildPerformance(
   for (const date of dates) {
     const sp = valueAt(SP500_SYMBOL, date);
     const ft = valueAt(FTSE_SYMBOL, date);
-    let portfolio = cash;
+    let profit = 0;
     for (const p of positions) {
-      const ticker = p.ticker || "";
-      const hasData = map.has(ticker);
-      const price = hasData ? valueAt(ticker, date) : null;
       const bought = dateToSec(p.purchaseDate);
-      const held = bought === null || date >= bought;
-      const unit = held && price != null ? price : p.costBasis ?? 0;
-      portfolio += (p.shares ?? 0) * unit;
+      if (bought !== null && date < bought) continue;
+      const shares = p.shares ?? 0;
+      const costBasis = p.costBasis ?? 0;
+      const exit = p.closePrice;
+      const closedSec = dateToSec(p.closedAt);
+      if (isClosed(p) && typeof exit === "number") {
+        if (closedSec === null || date >= closedSec) {
+          profit += shares * (exit - costBasis);
+          continue;
+        }
+      }
+      const ticker = p.ticker || "";
+      const price = map.has(ticker) ? valueAt(ticker, date) : null;
+      if (price !== null) profit += shares * (price - costBasis);
     }
+    const value = capital + profit;
     points.push({
       t: date,
-      portfolio: Number.isFinite(portfolio) ? portfolio : null,
+      portfolio: Number.isFinite(value) ? value : null,
       sp500: sp,
       ftse: ft,
     });
@@ -208,7 +237,10 @@ function buildPerformance(
     if (b !== null && (minPurchase === null || b < minPurchase)) minPurchase = b;
   }
   if (minPurchase !== null) {
-    const clipped = points.filter((p) => p.t >= minPurchase);
+    // Before the first trade the fund is 100% cash, so the value is flat.
+    // Keep a short lead-in instead of years of dead line.
+    const leadIn = 30 * 86400;
+    const clipped = points.filter((p) => p.t >= minPurchase - leadIn);
     if (clipped.length >= 2) return clipped;
   }
   return points;
@@ -228,6 +260,9 @@ export async function GET() {
       rawPositions = p ?? [];
     }
 
+    const openRaw = rawPositions.filter((p) => !isClosed(p));
+    const closedRaw = rawPositions.filter((p) => isClosed(p));
+
     const symbols = [
       SP500_SYMBOL,
       FTSE_SYMBOL,
@@ -235,29 +270,21 @@ export async function GET() {
     ];
     const map = await fetchMany(symbols);
 
-    const cash = settings?.cash ?? 0;
-    let totalMarketValue = 0;
-    let dayChangeTotal = 0;
-    let dayChangeIncluded = false;
+    // Capital is the fund's NAV base. It is the money the fund started with,
+    // so the portfolio is always worth capital + profit, never capital + position size.
+    const capital = settings?.startingBalance ?? settings?.cash ?? 0;
 
-    const positions: PortfolioPosition[] = rawPositions.map((p, index) => {
+    const buildActive = (p: RawPosition, index: number): PortfolioPosition => {
       const ticker = p.ticker || "";
       const data = map.get(ticker);
       const price = data?.price ?? null;
       const prevClose = data?.prevClose ?? null;
       const shares = p.shares ?? 0;
-      const marketValue = price != null ? shares * price : null;
-      if (marketValue != null) totalMarketValue += marketValue;
       const costBasis = p.costBasis ?? 0;
       const costTotal = shares * costBasis;
-      const unrealized = marketValue != null ? marketValue - costTotal : null;
-      const unrealizedPct =
-        unrealized != null && costTotal > 0 ? (unrealized / costTotal) * 100 : null;
+      const marketValue = price != null ? shares * price : costTotal;
+      const unrealized = price != null ? marketValue - costTotal : 0;
       const dayChange = price != null && prevClose != null ? (price - prevClose) * shares : null;
-      if (dayChange != null) {
-        dayChangeTotal += dayChange;
-        dayChangeIncluded = true;
-      }
       return {
         _id: p._id || `position-${index}`,
         ticker,
@@ -267,12 +294,17 @@ export async function GET() {
         purchaseDate: p.purchaseDate,
         notes: p.notes,
         research: p.research ?? null,
+        status: "active",
+        closePrice: null,
+        closedAt: null,
         price,
         prevClose,
         marketValue,
         costTotal,
         unrealized,
-        unrealizedPct,
+        unrealizedPct: costTotal > 0 ? (unrealized / costTotal) * 100 : null,
+        realized: null,
+        realizedPct: null,
         dayChange,
         dayChangePct:
           price != null && prevClose != null && prevClose !== 0
@@ -280,32 +312,101 @@ export async function GET() {
             : null,
         weight: 0,
       };
+    };
+
+    const positions = openRaw.map(buildActive);
+
+    const closedPositions: PortfolioPosition[] = closedRaw.map((p, index) => {
+      const shares = p.shares ?? 0;
+      const costBasis = p.costBasis ?? 0;
+      const costTotal = shares * costBasis;
+      const exit = typeof p.closePrice === "number" ? p.closePrice : null;
+      const realized = exit != null ? shares * (exit - costBasis) : null;
+      return {
+        _id: p._id || `closed-${index}`,
+        ticker: p.ticker || "",
+        name: p.name,
+        shares,
+        costBasis,
+        purchaseDate: p.purchaseDate,
+        notes: p.notes,
+        research: p.research ?? null,
+        status: "closed",
+        closePrice: exit,
+        closedAt: p.closedAt ?? null,
+        price: exit,
+        prevClose: null,
+        marketValue: exit != null ? shares * exit : null,
+        costTotal,
+        unrealized: null,
+        unrealizedPct: null,
+        realized,
+        realizedPct: realized != null && costTotal > 0 ? (realized / costTotal) * 100 : null,
+        dayChange: null,
+        dayChangePct: null,
+        weight: 0,
+      };
     });
 
+    const openMarketValue = positions.reduce((sum, p) => sum + (p.marketValue ?? p.costTotal), 0);
+    const deployed = positions.reduce((sum, p) => sum + p.costTotal, 0);
+    const unrealizedTotal = positions.reduce((sum, p) => sum + (p.unrealized ?? 0), 0);
+    const realizedTotal = closedPositions.reduce((sum, p) => sum + (p.realized ?? 0), 0);
+
+    // cash = capital - capital deployed into open positions + realised proceeds
+    //      = totalValue - open market value
+    const totalValue = capital + unrealizedTotal + realizedTotal;
+    const cash = totalValue - openMarketValue;
+
     for (const pos of positions) {
-      pos.weight = totalMarketValue > 0 && pos.marketValue != null ? (pos.marketValue / totalMarketValue) * 100 : 0;
+      pos.weight = totalValue > 0 ? ((pos.marketValue ?? pos.costTotal) / totalValue) * 100 : 0;
     }
 
-    const totalValue = cash + totalMarketValue;
-    const startingBalance = settings?.startingBalance ?? totalValue;
-    const totalReturnAbs = totalValue - startingBalance;
-    const totalReturnPct = startingBalance > 0 ? (totalReturnAbs / startingBalance) * 100 : 0;
+    let dayChangeTotal = 0;
+    let dayChangeIncluded = false;
+    for (const pos of positions) {
+      if (pos.dayChange != null) {
+        dayChangeTotal += pos.dayChange;
+        dayChangeIncluded = true;
+      }
+    }
+
+    const totalReturnAbs = totalValue - capital;
+    const totalReturnPct = capital > 0 ? (totalReturnAbs / capital) * 100 : 0;
     const priorValue = totalValue - (dayChangeIncluded ? dayChangeTotal : 0);
 
-    const performance = rawPositions.length > 0 ? buildPerformance(rawPositions, map, cash) : buildPerformance([], map, 0);
+    const performance =
+      rawPositions.length > 0 ? buildPerformance(rawPositions, map, capital) : [];
+
+    // Make the chart end on the live mark, so the last point matches the table.
+    if (performance.length > 0) {
+      const last = performance[performance.length - 1];
+      last.portfolio = totalValue;
+      const sp = map.get(SP500_SYMBOL)?.price;
+      const ft = map.get(FTSE_SYMBOL)?.price;
+      if (sp != null) last.sp500 = sp;
+      if (ft != null) last.ftse = ft;
+    }
 
     return NextResponse.json(
       {
         ok: true,
-        hasPositions: rawPositions.length > 0,
+        hasPositions: positions.length > 0,
+        hasClosedPositions: closedPositions.length > 0,
         hasSettings: settings !== null,
         settings,
         positions,
+        closedPositions,
         totals: {
+          capital,
           cash,
-          totalMarketValue,
+          deployed,
+          openMarketValue,
+          totalMarketValue: openMarketValue,
+          unrealizedTotal,
+          realizedTotal,
           totalValue,
-          startingBalance,
+          startingBalance: capital,
           totalReturnPct,
           totalReturnAbs,
           dayChange: dayChangeIncluded ? dayChangeTotal : null,
@@ -316,7 +417,7 @@ export async function GET() {
         currency: "USD",
         updatedAt: new Date().toISOString(),
       },
-      { headers: { "Cache-Control": "public, s-maxage=60, stale-while-revalidate=120" } }
+      { headers: { "Cache-Control": "no-store" } },
     );
   } catch {
     return NextResponse.json({ ok: false, error: "failed" }, { status: 500 });
