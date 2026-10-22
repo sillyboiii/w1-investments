@@ -1,6 +1,7 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { Suspense, useEffect, useMemo, useState } from "react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { AnimatePresence, motion } from "framer-motion";
 import { urlFor } from "@/sanity/lib/image";
@@ -33,11 +34,11 @@ interface OrgNodeData {
   member: TeamMember | null;
 }
 
-function FilledNode({ member, onClick }: { member: TeamMember; onClick: () => void }) {
+function FilledNode({ member, onClick }: { member: TeamMember; onClick: (m: TeamMember) => void }) {
   const roleLabel = member.displayRole || member.role || member.group;
   return (
     <button
-      onClick={onClick}
+      onClick={() => onClick(member)}
       className="group mx-auto flex w-full max-w-sm flex-col items-center border border-border bg-background px-4 py-5 text-center transition-colors hover:border-ink"
     >
       {member.photo ? (
@@ -78,7 +79,7 @@ function OpenNode({ title }: { title: string }) {
 
 function SlotNode({ node, onClick }: { node: OrgNodeData; onClick: (m: TeamMember) => void }) {
   if (node.member && node.member.status !== "open") {
-    return <FilledNode member={node.member} onClick={() => onClick(node.member as TeamMember)} />;
+    return <FilledNode member={node.member} onClick={onClick} />;
   }
   const title = node.member?.displayRole || node.member?.role || node.title;
   return <OpenNode title={title} />;
@@ -162,10 +163,36 @@ function MobileGroup({
   );
 }
 
-export default function TeamOrgModal({ members }: { members: TeamMember[] }) {
+function TeamOrgModalInner({ members }: { members: TeamMember[] }) {
   const [selected, setSelected] = useState<TeamMember | null>(null);
   const org = useMemo(() => buildOrg(members), [members]);
   const { founder, leadershipRest, extraLeadership, columns } = org;
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+
+  useEffect(() => {
+    const memberId = searchParams.get("member");
+    if (memberId) {
+      const m = members.find((x) => x._id === memberId);
+      if (m) setSelected(m);
+    }
+  }, [searchParams, members]);
+
+  const openMember = (m: TeamMember) => {
+    setSelected(m);
+    const params = new URLSearchParams(searchParams.toString());
+    params.set("member", m._id);
+    router.replace(`${pathname}?${params.toString()}`, { scroll: false });
+  };
+
+  const closeMember = () => {
+    setSelected(null);
+    const params = new URLSearchParams(searchParams.toString());
+    params.delete("member");
+    const q = params.toString();
+    router.replace(q ? `${pathname}?${q}` : pathname, { scroll: false });
+  };
 
   return (
     <>
@@ -177,7 +204,7 @@ export default function TeamOrgModal({ members }: { members: TeamMember[] }) {
       >
         <div className="hidden lg:block border-y border-border py-10">
           <div className="mx-auto max-w-4xl">
-            <SlotNode node={founder} onClick={setSelected} />
+            <SlotNode node={founder} onClick={openMember} />
 
             <Connector />
             <div
@@ -185,7 +212,7 @@ export default function TeamOrgModal({ members }: { members: TeamMember[] }) {
               style={{ gridTemplateColumns: `repeat(${leadershipRest.length}, minmax(0, 1fr))` }}
             >
               {leadershipRest.map((n) => (
-                <SlotNode key={n.key} node={n} onClick={setSelected} />
+                <SlotNode key={n.key} node={n} onClick={openMember} />
               ))}
             </div>
 
@@ -199,7 +226,7 @@ export default function TeamOrgModal({ members }: { members: TeamMember[] }) {
                   }}
                 >
                   {extraLeadership.map((n) => (
-                    <SlotNode key={n.key} node={n} onClick={setSelected} />
+                    <SlotNode key={n.key} node={n} onClick={openMember} />
                   ))}
                 </div>
               </>
@@ -224,7 +251,7 @@ export default function TeamOrgModal({ members }: { members: TeamMember[] }) {
                 <p className="min-h-8 text-xs uppercase tracking-[0.2em] text-muted">{col.label}</p>
                 <div className="mt-3 space-y-2">
                   {col.nodes.map((n) => (
-                    <SlotNode key={n.key} node={n} onClick={setSelected} />
+                    <SlotNode key={n.key} node={n} onClick={openMember} />
                   ))}
                 </div>
               </motion.div>
@@ -236,10 +263,10 @@ export default function TeamOrgModal({ members }: { members: TeamMember[] }) {
           <MobileGroup
             label="Leadership"
             nodes={[founder, ...leadershipRest, ...extraLeadership]}
-            onSelect={setSelected}
+            onSelect={openMember}
           />
           {columns.map((col) => (
-            <MobileGroup key={col.key} label={col.label} nodes={col.nodes} onSelect={setSelected} />
+            <MobileGroup key={col.key} label={col.label} nodes={col.nodes} onSelect={openMember} />
           ))}
         </div>
       </motion.div>
@@ -252,7 +279,7 @@ export default function TeamOrgModal({ members }: { members: TeamMember[] }) {
             exit={{ opacity: 0 }}
             transition={{ duration: 0.2 }}
             className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 px-4 backdrop-blur-[2px]"
-            onClick={() => setSelected(null)}
+            onClick={closeMember}
           >
             <motion.div
               initial={{ opacity: 0, scale: 0.95, y: 16 }}
@@ -267,7 +294,7 @@ export default function TeamOrgModal({ members }: { members: TeamMember[] }) {
             >
               <div className="h-1 w-full bg-ink" />
               <button
-                onClick={() => setSelected(null)}
+                onClick={closeMember}
                 aria-label="Close profile"
                 className="absolute right-4 top-5 flex h-8 w-8 items-center justify-center text-muted transition-colors hover:text-ink"
               >
@@ -320,5 +347,13 @@ export default function TeamOrgModal({ members }: { members: TeamMember[] }) {
         )}
       </AnimatePresence>
     </>
+  );
+}
+
+export default function TeamOrgModal({ members }: { members: TeamMember[] }) {
+  return (
+    <Suspense fallback={<div className="mx-auto max-w-[92rem] px-5 md:px-8 lg:px-10 py-10" />}>
+      <TeamOrgModalInner members={members} />
+    </Suspense>
   );
 }

@@ -1,3 +1,6 @@
+'use client';
+
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { Navbar } from "@/components/layout/Navbar";
@@ -29,10 +32,17 @@ interface ResearchItem {
   reportUrl?: string;
 }
 
-async function getResearch(): Promise<ResearchItem[]> {
-  if (!isSanityConfigured) return [];
-  return sanityClient.fetch(researchListQuery, {}, { next: { revalidate: 60 } });
+function normalizeCategory(cat?: string) {
+  if (!cat) return "Research";
+  const c = cat.toLowerCase();
+  if (c.includes("macro")) return "Macro";
+  if (c.includes("quant")) return "Quantitative";
+  if (c.includes("digital")) return "Digital Assets";
+  if (c.includes("brief")) return "Market Briefs";
+  if (c.includes("equity")) return "Equity Research";
+  return cat;
 }
+
 
 function formatDate(date?: string) {
   if (!date) return "Draft";
@@ -43,8 +53,34 @@ function formatDate(date?: string) {
   }).format(new Date(date));
 }
 
-export default async function ResearchPage() {
-  const researchItems = await getResearch();
+export default function ResearchPage() {
+  const [researchItems, setResearchItems] = useState<ResearchItem[]>([]);
+  const [active, setActive] = useState("All");
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function load() {
+      if (!isSanityConfigured) { setLoading(false); return; }
+      try {
+        const items = await sanityClient.fetch(researchListQuery, {}, { cache: "no-store" });
+        setResearchItems(items || []);
+      } catch {
+        setResearchItems([]);
+      } finally {
+        setLoading(false);
+      }
+    }
+    load();
+  }, []);
+
+  const filtered = useMemo(() => {
+    if (active === "All") return researchItems;
+    return researchItems.filter((item) => {
+      const c = normalizeCategory(item.category);
+      if (active === "Equity Research") return c === "Equity Research" || c === "Research";
+      return c === active;
+    });
+  }, [researchItems, active]);
 
   return (
     <div className="flex min-h-full flex-col">
@@ -62,12 +98,17 @@ export default async function ResearchPage() {
 
               <div className="mt-10 flex flex-wrap gap-3 md:gap-4">
                 {categories.map((category) => (
-                  <span
+                  <button
                     key={category}
-                    className="text-sm px-3 py-1.5 border border-border text-muted"
+                    onClick={() => setActive(category)}
+                    className={`text-sm px-3 py-1.5 border transition-colors ${
+                      active === category
+                        ? "border-ink text-ink bg-ink/5"
+                        : "border-border text-muted hover:border-ink hover:text-ink"
+                    }`}
                   >
                     {category}
-                  </span>
+                  </button>
                 ))}
               </div>
             </div>
@@ -76,9 +117,9 @@ export default async function ResearchPage() {
 
         <section className="py-14 md:py-20">
           <div className="mx-auto max-w-7xl px-6 md:px-8 lg:px-10">
-            {researchItems.length > 0 ? (
+            {filtered.length > 0 ? (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                {researchItems.map((item) => (
+                {filtered.map((item) => (
                   <article key={item._id} className="border-t border-border pt-6">
                     {item.coverImage && (
                       <Link
@@ -111,7 +152,7 @@ export default async function ResearchPage() {
                       </Link>
                     </h2>
                     <p className="mt-4 text-sm text-muted">
-                      {item.analyst ? `${item.analyst} · ` : ""}{formatDate(item.publishedAt)}
+                      {item.analyst ? (<><Link href={`/team`} className="hover:text-ink">{item.analyst}</Link> · </>) : ""}{formatDate(item.publishedAt)}
                     </p>
                     {item.abstract && (
                       <p className="mt-4 text-muted leading-relaxed">{item.abstract}</p>
@@ -131,7 +172,7 @@ export default async function ResearchPage() {
               </div>
             ) : (
               <div className="py-10 md:py-14 text-muted">
-                <p>No published research yet.</p>
+                <p>{loading ? "Loading..." : "No published research yet."}</p>
               </div>
             )}
           </div>

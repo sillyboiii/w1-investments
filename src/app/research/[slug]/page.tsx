@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 import Image from "next/image";
+import Link from "next/link";
 
 import { PortableText, type PortableTextComponents } from "@portabletext/react";
 import type { PortableTextBlock } from "@portabletext/types";
@@ -119,7 +120,7 @@ export default async function ResearchArticlePage({ params }: ResearchPageProps)
                 {research.title}
               </h1>
               <p className="mt-6 text-muted">
-                {research.analyst ? `${research.analyst} · ` : ""}
+                {research.analyst ? (<><Link href={`/team`} className="hover:text-ink">{research.analyst}</Link> · </>) : ""}
                 {formatDate(research.publishedAt)}
               </p>
               {research.abstract && (
