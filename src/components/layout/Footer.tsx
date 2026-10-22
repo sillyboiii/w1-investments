@@ -9,8 +9,8 @@ const footerLinks = [
 ];
 
 const socialLinks = [
-  { href: "https://www.linkedin.com/company/w1investments", label: "LinkedIn", external: true },
-  { href: "https://x.com/w1investments", label: "X", external: true },
+  { href: "https://www.linkedin.com/company/w1-investments", label: "LinkedIn", external: true },
+  { href: "https://x.com/w1_investments", label: "X", external: true },
 ];
 
 export function Footer() {
