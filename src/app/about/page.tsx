@@ -18,14 +18,14 @@ export default function AboutPage() {
               transition={{ duration: 1, ease: [0.25, 0.1, 0.25, 1] }}
             >
               <h1 className="text-3xl md:text-5xl lg:text-6xl font-serif tracking-tight leading-[1.05] max-w-4xl">
-                Students shouldn't have to wait until their first internship to experience how investment research and portfolio management actually work.
+                Students shouldn&apos;t have to wait until their first internship to experience how investment research and portfolio management actually work.
               </h1>
 
               <SlashDivider delay={0.2} />
 
               <div className="max-w-3xl ml-auto space-y-6">
                 <p className="text-lg md:text-xl leading-relaxed">
-                  W1 exists to create an environment where students can research companies and markets, defend investment ideas, challenge each other's assumptions, manage a model portfolio and publish work they are proud to show employers.
+                  W1 exists to create an environment where students can research companies and markets, defend investment ideas, challenge each other&apos;s assumptions, manage a model portfolio and publish work they are proud to show employers.
                 </p>
                 <p className="text-lg md:text-xl leading-relaxed text-muted">
                   Founded by students at the University of Westminster, W1 is built on discipline, rigour and a commitment to institutional standards.

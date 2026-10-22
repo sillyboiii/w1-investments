@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, type JSX } from "react";
+import { useSyncExternalStore } from "react";
 import { motion, type Variants } from "framer-motion";
 
 interface AnimatedTextProps {
@@ -11,18 +11,25 @@ interface AnimatedTextProps {
   splitBy?: "words" | "chars" | "lines";
 }
 
-function usePrefersReducedMotion() {
-  const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
-  const [mounted, setMounted] = useState(false);
+const REDUCED_MOTION_QUERY = "(prefers-reduced-motion: reduce)";
 
-  useEffect(() => {
-    const mql = window.matchMedia("(prefers-reduced-motion: reduce)");
-    setMounted(true);
-    setPrefersReducedMotion(mql.matches);
-    const onChange = (e: MediaQueryListEvent) => setPrefersReducedMotion(e.matches);
-    mql.addEventListener("change", onChange);
-    return () => mql.removeEventListener("change", onChange);
-  }, []);
+function subscribeToMediaQuery(callback: () => void) {
+  const mql = window.matchMedia(REDUCED_MOTION_QUERY);
+  mql.addEventListener("change", callback);
+  return () => mql.removeEventListener("change", callback);
+}
+
+function usePrefersReducedMotion() {
+  const prefersReducedMotion = useSyncExternalStore(
+    subscribeToMediaQuery,
+    () => window.matchMedia(REDUCED_MOTION_QUERY).matches,
+    () => false,
+  );
+  const mounted = useSyncExternalStore(
+    subscribeToMediaQuery,
+    () => true,
+    () => false,
+  );
 
   return { prefersReducedMotion, mounted };
 }
