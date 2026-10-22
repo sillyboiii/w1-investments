@@ -90,6 +90,21 @@ async function fetchYahoo(symbol: string): Promise<SymbolData | null> {
   return null;
 }
 
+async function fetchNasdaqLive(symbol: string): Promise<{price: number|null, prevClose: number|null}> {
+  try {
+    const res = await fetch(`https://api.nasdaq.com/api/quote/${encodeURIComponent(symbol)}/info?assetclass=stocks`, {
+      headers: { 'User-Agent': FETCH_UA, Accept: 'application/json' },
+      cache: 'no-store',
+    });
+    if (!res.ok) return {price:null,prevClose:null};
+    const json = await res.json();
+    const p = json?.data?.primaryData?.lastSalePrice;
+    const price = typeof p === 'string' ? Number(p.replace(/[$,]/g,'')) : (typeof p === 'number' ? p : null);
+    // try to get prev close from historical
+    return {price: Number.isFinite(price)?price:null, prevClose:null};
+  } catch { return {price:null,prevClose:null}; }
+}
+
 async function fetchNasdaq(symbol: string): Promise<SymbolData | null> {
   const isIndex = symbol.startsWith("^");
   const nasdaqSymbol = isIndex ? NASDAQ_PROXY[symbol] : symbol.includes(".") ? undefined : symbol;
@@ -132,10 +147,28 @@ async function fetchNasdaq(symbol: string): Promise<SymbolData | null> {
 
 async function fetchSymbol(symbol: string): Promise<SymbolData | null> {
   const cached = dataCache.get(symbol);
-  if (cached && Date.now() - cached.at < CACHE_TTL_MS) return cached.data;
+  if (cached && Date.now() - cached.at < CACHE_TTL_MS) {
+    // try to refresh live price for non-index stocks
+    if (!symbol.startsWith('^') && !NASDAQ_PROXY[symbol]) {
+      const live = await fetchNasdaqLive(symbol);
+      if (live.price != null) {
+        const d = {...cached.data, price: live.price, prevClose: live.prevClose ?? cached.data.prevClose};
+        dataCache.set(symbol, { data: d, at: Date.now() });
+        return d;
+      }
+    }
+    return cached.data;
+  }
   let data = await fetchYahoo(symbol);
   if (!data) data = await fetchNasdaq(symbol);
-  if (data) dataCache.set(symbol, { data, at: Date.now() });
+  if (data) {
+    if (!symbol.startsWith('^')) {
+      const live = await fetchNasdaqLive(symbol);
+      if (live.price != null) data.price = live.price;
+      if (live.prevClose != null) data.prevClose = live.prevClose;
+    }
+    dataCache.set(symbol, { data, at: Date.now() });
+  }
   return data;
 }
 
