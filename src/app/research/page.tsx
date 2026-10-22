@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { sanityClient } from "@/sanity/lib/client";
@@ -80,12 +81,25 @@ export default async function ResearchPage() {
                 {researchItems.map((item) => (
                   <article key={item._id} className="border-t border-border pt-6">
                     {item.coverImage && (
-                      <div
-                        className="mb-6 aspect-[4/3] bg-cover bg-center grayscale-[10%] saturate-[0.85]"
-                        style={{
-                          backgroundImage: `url('${urlFor(item.coverImage).width(900).height(675).fit("crop").url()}')`,
-                        }}
-                      />
+                      <Link
+                        href={`/research/${item.slug}`}
+                        className="group mb-6 block overflow-hidden border border-border bg-border/20"
+                      >
+                        <div className="relative aspect-[16/9]">
+                          <Image
+                            src={urlFor(item.coverImage)
+                              .width(1200)
+                              .height(675)
+                              .fit("crop")
+                              .quality(85)
+                              .url()}
+                            alt={item.title}
+                            fill
+                            sizes="(min-width: 1024px) 33vw, (min-width: 768px) 50vw, 100vw"
+                            className="object-cover transition-transform duration-500 ease-out group-hover:scale-[1.02]"
+                          />
+                        </div>
+                      </Link>
                     )}
                     <div className="mb-4 flex flex-wrap items-center gap-3 text-xs uppercase tracking-[0.18em] text-muted">
                       <span>{item.category ?? "Research"}</span>
