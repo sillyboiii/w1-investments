@@ -255,8 +255,12 @@ export default function PortfolioView() {
   };
 
   const chartPanel = (
-    <div className="pt-8">
-      <PerformanceChart series={returnSeries} />
+    <div className="pt-8 min-w-0">
+      <div className="w-full overflow-x-auto overflow-y-hidden">
+        <div className="min-w-[280px]">
+          <PerformanceChart series={returnSeries} />
+        </div>
+      </div>
       <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-3">
         <Stat
           label="W1 Portfolio"
