@@ -258,7 +258,7 @@ export default function PortfolioView() {
     <div className="pt-8 min-w-0">
       <div className="w-full overflow-x-auto overflow-y-hidden">
         <div className="min-w-[280px]">
-          <PerformanceChart series={returnSeries} />
+          <PerformanceChart key={range} series={returnSeries} />
         </div>
       </div>
       <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-3">
