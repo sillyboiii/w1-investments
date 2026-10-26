@@ -270,11 +270,17 @@ function buildPerformance(
     if (b !== null && (minPurchase === null || b < minPurchase)) minPurchase = b;
   }
   if (minPurchase !== null) {
-    // Before the first trade the fund is 100% cash, so the value is flat.
-    // Keep a short lead-in instead of years of dead line.
-    const leadIn = 30 * 86400;
-    const clipped = points.filter((p) => p.t >= minPurchase - leadIn);
-    if (clipped.length >= 2) return clipped;
+    // Start from first investment date
+    const clipped = points.filter((p) => p.t >= minPurchase);
+    if (clipped.length >= 1) {
+      // ensure at least one point before first purchase if needed for context
+      const before = points.filter((p) => p.t < minPurchase);
+      if (before.length > 0) {
+        const lastBefore = before[before.length - 1];
+        return [{ ...lastBefore, portfolio: capital }, ...clipped];
+      }
+      return clipped.length >= 1 ? clipped : points;
+    }
   }
   return points;
 }
