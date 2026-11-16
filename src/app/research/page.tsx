@@ -93,7 +93,7 @@ export default function ResearchPage() {
                 RESEARCH
               </h1>
               <p className="text-xl md:text-2xl font-serif tracking-tight text-muted mt-4 max-w-3xl">
-                A publication-style research hub for rigorous, institutional-standard work.
+                Our research.
               </p>
 
               <div className="mt-10 flex flex-wrap gap-3 md:gap-4">
